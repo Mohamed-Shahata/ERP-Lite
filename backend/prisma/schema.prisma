@@ -1,0 +1,240 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+enum PurchaseOrderStatus {
+  PENDING
+  RECEIVED
+  CANCELLED
+}
+
+enum SalesOrderStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  BANK_TRANSFER
+  OTHER
+}
+
+enum MovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+enum ReferenceType {
+  PURCHASE_ORDER
+  SALES_ORDER
+  MANUAL
+}
+
+model User{
+  id                       String           @id @default(uuid())
+  name                     String
+  email                    String           @unique
+  passwordHash             String
+  role                     Role
+  isActive                 Boolean          @default(true)
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+  resetPasswordTokenHash   String?
+  resetPasswordExpiresAt   DateTime?
+
+  purchaseOrders           PurchaseOrder[]
+  salesOrders              SalesOrder[]
+  payments                 Payment[]
+  stockMovements           StockMovement[]
+
+}
+
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+
+  products    Product[]
+}
+
+model Product {
+  id               String              @id @default(uuid())
+  sku              String              @unique
+  name             String
+  description      String?
+  categoryId       String
+
+  category         Category            @relation(fields: [categoryId], references: [id])
+
+  costPrice        Decimal             @db.Decimal(10, 2)
+  sellPrice        Decimal             @db.Decimal(10, 2)
+  quantityInStock  Int                 @default(0)
+  reorderLevel     Int                 @default(10)
+  isActive         Boolean             @default(true)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  purchaseItems    PurchaseOrderItem[]
+  salesItems       SalesOrderItem[]
+  stockMovements   StockMovement[]
+}
+
+model Customer {
+  id        String       @id @default(uuid())
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  createdAt DateTime     @default(now())
+
+  salesOrders SalesOrder[]
+}
+
+model Supplier {
+  id        String          @id @default(uuid())
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  createdAt DateTime        @default(now())
+
+  purchaseOrders PurchaseOrder[]
+}
+
+model PurchaseOrder {
+  id           String                @id @default(uuid())
+  poNumber     String                @unique
+  supplierId   String
+  supplier     Supplier              @relation(fields: [supplierId], references: [id])
+  status       PurchaseOrderStatus   @default(PENDING)
+  totalAmount  Decimal               @db.Decimal(12, 2)
+  createdById  String
+  createdBy    User                  @relation(fields: [createdById], references: [id])
+  createdAt    DateTime              @default(now())
+  receivedAt   DateTime?
+
+  items        PurchaseOrderItem[]
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(uuid())
+
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id])
+
+  quantity        Int
+  unitCost        Decimal       @db.Decimal(10, 2)
+}
+
+model SalesOrder {
+  id           String            @id @default(uuid())
+  orderNumber  String            @unique
+
+  customerId   String
+  customer     Customer          @relation(fields: [customerId], references: [id])
+
+  status       SalesOrderStatus  @default(DRAFT)
+  totalAmount  Decimal           @db.Decimal(12, 2)
+
+  createdById  String
+  createdBy    User              @relation(fields: [createdById], references: [id])
+
+  createdAt    DateTime          @default(now())
+  confirmedAt  DateTime?
+
+  items        SalesOrderItem[]
+  invoice      Invoice?
+}
+
+model SalesOrderItem {
+  id           String     @id @default(uuid())
+
+  salesOrderId String
+  salesOrder   SalesOrder @relation(fields: [salesOrderId], references: [id])
+
+  productId    String
+  product      Product    @relation(fields: [productId], references: [id])
+
+  quantity     Int
+  unitPrice    Decimal    @db.Decimal(10, 2)
+}
+
+model Invoice {
+  id             String        @id @default(uuid())
+  invoiceNumber  String        @unique
+
+  salesOrderId   String        @unique
+  salesOrder     SalesOrder    @relation(fields: [salesOrderId], references: [id])
+
+  amount         Decimal       @db.Decimal(12, 2)
+  amountPaid     Decimal       @default(0) @db.Decimal(12, 2)
+  status         InvoiceStatus @default(UNPAID)
+  dueDate        DateTime
+  createdAt      DateTime      @default(now())
+
+  payments       Payment[]
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  
+  invoiceId     String
+  invoice       Invoice       @relation(fields: [invoiceId], references: [id])
+
+  amount        Decimal       @db.Decimal(10, 2)
+  method        PaymentMethod
+
+  recordedById  String
+  recordedBy    User          @relation(fields: [recordedById], references: [id])
+
+  paidAt        DateTime      @default(now())
+}
+
+model StockMovement {
+  id            String         @id @default(uuid())
+
+  productId     String
+  product       Product        @relation(fields: [productId], references: [id])
+
+  type          MovementType
+  quantity      Int
+  referenceType ReferenceType
+  referenceId   String?
+  note          String?
+
+  createdById   String
+  createdBy     User           @relation(fields: [createdById], references: [id])
+
+  createdAt     DateTime       @default(now())
+}

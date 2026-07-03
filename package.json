@@ -1,0 +1,24 @@
+{
+  "name": "erp-lite",
+  "version": "1.0.0",
+  "description": "```\r ┌─────────────────┐        HTTPS/REST        ┌──────────────────┐\r │   Next.js App    │ ───────────────────────▶ │   NestJS API      │\r │  (Frontend/SSR)  │ ◀─────────────────────── │   (Backend)       │\r └─────────────────┘        JSON + JWT         └──────────────────┘\r                                                         │\r                                                         │ Prisma ORM\r                                                         ▼\r                                               ┌──────────────────┐\r                                               │  PostgreSQL DB    │\r                                               └──────────────────┘",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently -n FRONTEND,BACKEND -c blue,green \"npm run dev --prefix frontend\" \"npm run start:dev --prefix backend\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mohamed-Shahata/ERP-Lite.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Mohamed-Shahata/ERP-Lite/issues"
+  },
+  "homepage": "https://github.com/Mohamed-Shahata/ERP-Lite#readme",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}
