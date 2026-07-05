@@ -6,8 +6,15 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Res,
+  Req,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import type { Response, Request } from 'express';
+import {
+  AuthService,
+  ACCESS_TOKEN_TTL_MS,
+  REFRESH_TOKEN_TTL_MS,
+} from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -19,6 +26,12 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { CurrentUserPayload } from '../common/interfaces/current-user.interface';
 import { Role } from '../../generated/prisma/enums';
+import {
+  setAccessTokenCookie,
+  setRefreshTokenCookie,
+  clearAuthCookies,
+  REFRESH_TOKEN_COOKIE,
+} from '../common/cookies/auth-cookies.util';
 
 @Controller('auth')
 export class AuthController {
@@ -26,8 +39,49 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { accessToken, refreshToken, user } =
+      await this.authService.login(dto);
+
+    setAccessTokenCookie(res, accessToken, ACCESS_TOKEN_TTL_MS);
+    setRefreshTokenCookie(res, refreshToken, REFRESH_TOKEN_TTL_MS);
+
+    // Tokens never appear in the response body — only in httpOnly cookies.
+    return { user };
+  }
+
+  // Silently issues a new access token (+ rotates the refresh token) using
+  // the httpOnly refresh_token cookie. No body needed — the cookie IS the input.
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const rawRefreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE];
+    const { accessToken, refreshToken, user } =
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      await this.authService.refreshTokens(rawRefreshToken);
+
+    setAccessTokenCookie(res, accessToken, ACCESS_TOKEN_TTL_MS);
+    setRefreshTokenCookie(res, refreshToken, REFRESH_TOKEN_TTL_MS);
+
+    return { user };
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const rawRefreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    await this.authService.logout(rawRefreshToken);
+    clearAuthCookies(res);
+    return { message: 'Logged out' };
   }
 
   @Patch('change-password')
@@ -39,23 +93,18 @@ export class AuthController {
     return this.authService.changePassword(user.id, dto);
   }
 
-  // Step 1 of reset flow: request the link. Public — no auth required,
-  // since the whole point is the user is logged out / locked out.
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto.email);
   }
 
-  // Step 2 of reset flow: submit the token from the emailed link + new password.
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
   }
 
-  // Admin changes ANY user's email. No email notification is sent for this
-  // (by design — see MailService: reset-password is the only email this app sends).
   @Patch('change-email')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)

@@ -73,8 +73,21 @@ model User{
   payments                 Payment[]
   stockMovements           StockMovement[]
 
+
+  refreshTokens RefreshToken[]
 }
 
+model RefreshToken {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+}
 
 model Category {
   id          String    @id @default(uuid())
