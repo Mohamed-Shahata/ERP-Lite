@@ -119,7 +119,7 @@ export function Pagination({
           <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
             {t("pagination.rowsPerPage")}
             <select
-              className="h-9 rounded-md border border-slate-300 dark:border-slate-700 px-2 text-sm focus:border-slate-500 dark:focus:border-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-600"
+              className="h-9 rounded-md border border-slate-300 dark:border-slate-700 px-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               onChange={(event) => {
                 onPageSizeChange(Number(event.target.value));
                 onPageChange(1);
@@ -138,7 +138,7 @@ export function Pagination({
         <nav className="flex items-center gap-1" aria-label="Pagination">
           <button
             aria-label={t("pagination.previous")}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-600 dark:text-slate-400 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
             disabled={safePage === 1}
             onClick={() => goTo(safePage - 1)}
             type="button"
@@ -172,9 +172,9 @@ export function Pagination({
               <button
                 key={page}
                 aria-current={page === safePage ? "page" : undefined}
-                className={`flex h-9 w-9 items-center justify-center rounded-md border text-sm font-medium ${
+                className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-medium ${
                   page === safePage
-                    ? "border-slate-950 dark:border-emerald-600 bg-slate-950 dark:bg-emerald-600 text-white"
+                    ? "border-blue-600 bg-blue-600 text-white dark:border-blue-500 dark:bg-blue-500"
                     : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
                 onClick={() => goTo(page)}
@@ -187,7 +187,7 @@ export function Pagination({
 
           <button
             aria-label={t("pagination.next")}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-600 dark:text-slate-400 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
             disabled={safePage === totalPages}
             onClick={() => goTo(safePage + 1)}
             type="button"

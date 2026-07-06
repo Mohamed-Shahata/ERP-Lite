@@ -71,7 +71,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
       <aside className="fixed inset-y-0 inset-s-0 hidden w-72 border-e border-slate-200 bg-white px-5 py-6 dark:border-slate-800 dark:bg-slate-900 lg:block">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-600 text-sm font-bold text-white">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
             EL
           </div>
           <div>
@@ -98,7 +98,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                   href={item.href}
                   className={`flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium ${
                     active
-                      ? "bg-slate-950 text-white dark:bg-emerald-600"
+                      ? "bg-blue-600 text-white"
                       : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
                   }`}
                 >
@@ -140,10 +140,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex items-center gap-3">
               <ThemeToggle />
-              <LanguageSwitcher className="hidden lg:flex" />
+              <LanguageSwitcher />
               <button
                 onClick={() => setIsLogoutModalOpen(true)}
-                className="rounded-md bg-slate-950 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 lg:hidden"
+                className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 lg:hidden"
               >
                 {t("shell.logout")}
               </button>
