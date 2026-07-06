@@ -8,6 +8,9 @@ export const ROUTE_RULES: RouteRule[] = [
   { pattern: "/settings", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
   { pattern: "/products", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
   { pattern: "/categories", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
+  // Suppliers are commercial/purchasing data — only admins and managers,
+  // unlike products/categories which every authenticated role can view.
+  { pattern: "/suppliers", roles: ["ADMIN", "MANAGER"] },
   { pattern: "/dashboard", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
 ];
 

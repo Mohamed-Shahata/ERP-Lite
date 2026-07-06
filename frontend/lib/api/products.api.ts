@@ -7,13 +7,13 @@ import type {
 import type { Product } from "@/types/product.types";
 
 export interface CreateProductPayload {
+  quantityInStock: string | number | readonly string[] | undefined;
   sku: string;
   name: string;
   description?: string;
   categoryId: string;
   costPrice: number;
   sellPrice: number;
-  quantityInStock?: number;
   reorderLevel?: number;
   isActive?: boolean;
 }
@@ -25,7 +25,6 @@ export interface UpdateProductPayload {
   categoryId?: string;
   costPrice?: number;
   sellPrice?: number;
-  quantityInStock?: number;
   reorderLevel?: number;
   isActive?: boolean;
 }

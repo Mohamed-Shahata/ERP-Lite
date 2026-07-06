@@ -38,5 +38,6 @@ export const config = {
     "/dashboard/:path*",
     "/products/:path*",
     "/categories/:path*",
+    "/suppliers/:path*",
   ],
 };

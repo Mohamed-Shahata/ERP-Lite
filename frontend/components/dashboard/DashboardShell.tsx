@@ -9,24 +9,38 @@ import { useTranslations } from "@/lib/i18n/use-translations";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import type { Role } from "@/types/auth.types";
 
-const navItems = [
+const navItems: Array<{
+  href: string;
+  labelKey: string;
+  icon: string;
+  /** Roles allowed to see this item. Omit to allow every authenticated role. */
+  roles?: Role[];
+}> = [
   { href: "/dashboard", labelKey: "nav.overview", icon: "O" },
   { href: "/products", labelKey: "nav.products", icon: "P" },
   { href: "/categories", labelKey: "nav.categories", icon: "C" },
+  // Suppliers are commercial/purchasing data — admins and managers only.
+  {
+    href: "/suppliers",
+    labelKey: "nav.suppliers",
+    icon: "S",
+    roles: ["ADMIN", "MANAGER"],
+  },
   { href: "/settings/security", labelKey: "nav.security", icon: "S" },
   {
     href: "/settings/users",
     labelKey: "nav.users",
     icon: "U",
-    adminOnly: true,
+    roles: ["ADMIN"],
   },
-] as const;
+];
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAdmin, setUser } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const { t } = useTranslations();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -55,7 +69,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
-      <aside className="fixed inset-y-0 start-0 hidden w-72 border-e border-slate-200 bg-white px-5 py-6 dark:border-slate-800 dark:bg-slate-900 lg:block">
+      <aside className="fixed inset-y-0 inset-s-0 hidden w-72 border-e border-slate-200 bg-white px-5 py-6 dark:border-slate-800 dark:bg-slate-900 lg:block">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-600 text-sm font-bold text-white">
             EL
@@ -72,7 +86,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
         <nav className="mt-8 space-y-1">
           {navItems
-            .filter((item) => !item.adminOnly || isAdmin())
+            .filter(
+              (item) => !item.roles || (user && item.roles.includes(user.role)),
+            )
             .map((item) => {
               const active =
                 pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -95,7 +111,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             })}
         </nav>
 
-        <div className="absolute bottom-6 start-5 end-5 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/50">
+        <div className="absolute bottom-6 inset-s-5 inset-e-5 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/50">
           <p className="truncate text-sm font-medium text-slate-900 dark:text-white">
             {user?.name ?? t("common.signedInUser")}
           </p>

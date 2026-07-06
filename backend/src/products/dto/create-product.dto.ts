@@ -12,31 +12,26 @@ import {
 export class CreateProductDto {
   @IsString()
   @MinLength(2)
-  sku: string;
+  sku!: string;
 
   @IsString()
   @MinLength(2)
-  name: string;
+  name!: string;
 
   @IsOptional()
   @IsString()
   description?: string;
 
   @IsUUID()
-  categoryId: string;
+  categoryId!: string;
 
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
-  costPrice: number;
+  costPrice!: number;
 
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
-  sellPrice: number;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  quantityInStock?: number;
+  sellPrice!: number;
 
   @IsOptional()
   @IsInt()

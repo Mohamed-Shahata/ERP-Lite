@@ -330,14 +330,39 @@ export default function CategoriesPage() {
                           (category.description ?? "—")
                         )}
                       </td>
-                      <td className="px-5 py-4 text-slate-500 dark:text-slate-400">
-                        {category._count?.products ?? 0}
+                      <td className="px-5 py-4">
+                        {isEditing ? (
+                          <div>
+                            <label
+                              htmlFor={`edit-category-products-${category.id}`}
+                              className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400"
+                            >
+                              {t("categories.products")}
+                            </label>
+
+                            <input
+                              id={`edit-category-products-${category.id}`}
+                              className="h-9 w-20 rounded-md border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-3 text-sm"
+                              type="number"
+                              value={category._count?.products ?? 0}
+                              readOnly
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-slate-500 dark:text-slate-400">
+                            {category._count?.products ?? 0}
+                          </span>
+                        )}
                       </td>
                       {canManage && (
                         <td className="px-5 py-4">
-                          <div className="flex justify-end gap-2">
-                            {isEditing ? (
-                              <>
+                          {isEditing ? (
+                            <div>
+                              <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+                                {t("common.actions")}
+                              </label>
+
+                              <div className="flex gap-2">
                                 <button
                                   className="h-9 rounded-md bg-slate-950 dark:bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-slate-800 dark:hover:bg-emerald-700 disabled:bg-slate-400 dark:disabled:bg-slate-700"
                                   disabled={isSaving}
@@ -348,6 +373,7 @@ export default function CategoriesPage() {
                                 >
                                   {t("common.save")}
                                 </button>
+
                                 <button
                                   className="h-9 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                                   onClick={() => setEditingCategoryId(null)}
@@ -355,29 +381,30 @@ export default function CategoriesPage() {
                                 >
                                   {t("common.cancel")}
                                 </button>
-                              </>
-                            ) : (
-                              <>
-                                <button
-                                  className="h-9 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                                  onClick={() => startEditCategory(category)}
-                                  type="button"
-                                >
-                                  {t("common.edit")}
-                                </button>
-                                <button
-                                  className="h-9 rounded-md border border-red-200 dark:border-red-900 bg-white dark:bg-slate-900 px-3 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-                                  disabled={isSaving}
-                                  onClick={() =>
-                                    void handleDeleteCategory(category)
-                                  }
-                                  type="button"
-                                >
-                                  {t("common.delete")}
-                                </button>
-                              </>
-                            )}
-                          </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex justify-end gap-2">
+                              <button
+                                className="h-9 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                onClick={() => startEditCategory(category)}
+                                type="button"
+                              >
+                                {t("common.edit")}
+                              </button>
+
+                              <button
+                                className="h-9 rounded-md border border-red-200 dark:border-red-900 bg-white dark:bg-slate-900 px-3 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
+                                disabled={isSaving}
+                                onClick={() =>
+                                  void handleDeleteCategory(category)
+                                }
+                                type="button"
+                              >
+                                {t("common.delete")}
+                              </button>
+                            </div>
+                          )}
                         </td>
                       )}
                     </tr>

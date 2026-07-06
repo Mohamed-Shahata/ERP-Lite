@@ -73,7 +73,9 @@ export default function ProductsPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productsPage, productsPageSize]);
 
   async function handleCreateProduct(event: FormEvent<HTMLFormElement>) {
@@ -89,7 +91,6 @@ export default function ProductsPage() {
         description: productForm.description?.trim() || undefined,
         costPrice: Number(productForm.costPrice),
         sellPrice: Number(productForm.sellPrice),
-        quantityInStock: Number(productForm.quantityInStock ?? 0),
         reorderLevel: Number(productForm.reorderLevel ?? 10),
       });
       setProductForm(emptyProductForm);
@@ -131,7 +132,6 @@ export default function ProductsPage() {
         description: productEditForm.description?.trim() || undefined,
         costPrice: Number(productEditForm.costPrice),
         sellPrice: Number(productEditForm.sellPrice),
-        quantityInStock: Number(productEditForm.quantityInStock ?? 0),
         reorderLevel: Number(productEditForm.reorderLevel ?? 10),
       });
       setProducts((current) =>
@@ -401,29 +401,6 @@ export default function ProductsPage() {
 
             <div>
               <label
-                htmlFor="product-quantity"
-                className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
-              >
-                {t("products.quantityInStock")}
-              </label>
-              <input
-                id="product-quantity"
-                className="h-10 w-full rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm focus:border-slate-500 dark:focus:border-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-600"
-                min={0}
-                onChange={(event) =>
-                  setProductForm((current) => ({
-                    ...current,
-                    quantityInStock: Number(event.target.value),
-                  }))
-                }
-                placeholder="0"
-                type="number"
-                value={productForm.quantityInStock}
-              />
-            </div>
-
-            <div>
-              <label
                 htmlFor="product-reorder"
                 className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
               >
@@ -673,16 +650,10 @@ export default function ProductsPage() {
                             </label>
                             <input
                               id={`edit-product-stock-${product.id}`}
-                              className="h-9 w-20 rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm focus:border-slate-500 dark:focus:border-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-600"
-                              min={0}
-                              onChange={(event) =>
-                                setProductEditForm((current) => ({
-                                  ...current,
-                                  quantityInStock: Number(event.target.value),
-                                }))
-                              }
+                              className="h-9 w-20 rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm bg-slate-100 dark:bg-slate-800"
                               type="number"
                               value={productEditForm.quantityInStock}
+                              readOnly
                             />
                           </div>
                         ) : (
@@ -752,25 +723,32 @@ export default function ProductsPage() {
                         <td className="px-5 py-4">
                           <div className="flex justify-end gap-2">
                             {isEditing ? (
-                              <>
-                                <button
-                                  className="h-9 rounded-md bg-slate-950 dark:bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-slate-800 dark:hover:bg-emerald-700 disabled:bg-slate-400 dark:disabled:bg-slate-700"
-                                  disabled={isSaving}
-                                  onClick={() =>
-                                    void handleUpdateProduct(product.id)
-                                  }
-                                  type="button"
-                                >
-                                  {t("common.save")}
-                                </button>
-                                <button
-                                  className="h-9 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                                  onClick={() => setEditingProductId(null)}
-                                  type="button"
-                                >
-                                  {t("common.cancel")}
-                                </button>
-                              </>
+                              <div>
+                                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
+                                  {t("common.actions")}
+                                </label>
+
+                                <div className="flex gap-2">
+                                  <button
+                                    className="h-9 rounded-md bg-slate-950 dark:bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-slate-800 dark:hover:bg-emerald-700 disabled:bg-slate-400 dark:disabled:bg-slate-700"
+                                    disabled={isSaving}
+                                    onClick={() =>
+                                      void handleUpdateProduct(product.id)
+                                    }
+                                    type="button"
+                                  >
+                                    {t("common.save")}
+                                  </button>
+
+                                  <button
+                                    className="h-9 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    onClick={() => setEditingProductId(null)}
+                                    type="button"
+                                  >
+                                    {t("common.cancel")}
+                                  </button>
+                                </div>
+                              </div>
                             ) : (
                               <>
                                 <button

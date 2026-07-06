@@ -41,11 +41,6 @@ export class UpdateProductDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  quantityInStock?: number;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
   reorderLevel?: number;
 
   @IsOptional()

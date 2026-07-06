@@ -53,7 +53,6 @@ export class ProductsService {
       categoryId: dto.categoryId,
       costPrice: dto.costPrice,
       sellPrice: dto.sellPrice,
-      quantityInStock: dto.quantityInStock,
       reorderLevel: dto.reorderLevel,
       isActive: dto.isActive ?? true,
     });
@@ -82,9 +81,6 @@ export class ProductsService {
       ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
       ...(dto.costPrice !== undefined ? { costPrice: dto.costPrice } : {}),
       ...(dto.sellPrice !== undefined ? { sellPrice: dto.sellPrice } : {}),
-      ...(dto.quantityInStock !== undefined
-        ? { quantityInStock: dto.quantityInStock }
-        : {}),
       ...(dto.reorderLevel !== undefined
         ? { reorderLevel: dto.reorderLevel }
         : {}),

@@ -16,7 +16,6 @@ export interface CreateProductData {
   categoryId: string;
   costPrice: number;
   sellPrice: number;
-  quantityInStock?: number;
   reorderLevel?: number;
   isActive?: boolean;
 }
@@ -28,7 +27,6 @@ export interface UpdateProductData {
   categoryId?: string;
   costPrice?: number;
   sellPrice?: number;
-  quantityInStock?: number;
   reorderLevel?: number;
   isActive?: boolean;
 }
