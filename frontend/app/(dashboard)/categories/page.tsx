@@ -7,7 +7,7 @@ import {
   listCategoriesRequest,
   updateCategoryRequest,
 } from "@/lib/api/categories.api";
-import { Pagination, paginate } from "@/components/ui/Pagination";
+import { Pagination } from "@/components/ui/Pagination";
 import { useAuthStore } from "@/lib/auth/auth-store";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import type { Category } from "@/types/product.types";
@@ -18,6 +18,7 @@ export default function CategoriesPage() {
   const canManage = user?.role === "ADMIN" || user?.role === "MANAGER";
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [totalCategories, setTotalCategories] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -42,7 +43,12 @@ export default function CategoriesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      setCategories(await listCategoriesRequest());
+      const result = await listCategoriesRequest({
+        page: categoriesPage,
+        limit: categoriesPageSize,
+      });
+      setCategories(result.data);
+      setTotalCategories(result.meta.total);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("categories.loadError"));
     } finally {
@@ -51,8 +57,10 @@ export default function CategoriesPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadCategories();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoriesPage, categoriesPageSize]);
 
   async function handleCreateCategory(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -60,15 +68,13 @@ export default function CategoriesPage() {
     setMessage(null);
     setError(null);
     try {
-      const created = await createCategoryRequest({
+      await createCategoryRequest({
         name: categoryForm.name.trim(),
         description: categoryForm.description.trim() || undefined,
       });
-      setCategories((current) =>
-        [...current, created].sort((a, b) => a.name.localeCompare(b.name)),
-      );
       setCategoryForm({ name: "", description: "" });
       setMessage(t("categories.created"));
+      await loadCategories();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : t("categories.createError"),
@@ -115,9 +121,7 @@ export default function CategoriesPage() {
 
   async function handleDeleteCategory(category: Category) {
     if (
-      !window.confirm(
-        t("categories.confirmDelete", { name: category.name }),
-      )
+      !window.confirm(t("categories.confirmDelete", { name: category.name }))
     ) {
       return;
     }
@@ -126,10 +130,8 @@ export default function CategoriesPage() {
     setError(null);
     try {
       await deleteCategoryRequest(category.id);
-      setCategories((current) =>
-        current.filter((item) => item.id !== category.id),
-      );
       setMessage(t("categories.deleted"));
+      await loadCategories();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : t("categories.deleteError"),
@@ -142,22 +144,22 @@ export default function CategoriesPage() {
   return (
     <div className="max-w-6xl space-y-6">
       <section>
-        <p className="text-sm font-medium text-emerald-700">
+        <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
           {t("common.inventory")}
         </p>
         <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-950">
+            <h2 className="text-2xl font-semibold text-slate-950 dark:text-white">
               {t("categories.title")}
             </h2>
-            <p className="mt-2 text-sm text-slate-500">
-              {t("categories.summary", { count: categories.length })}
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              {t("categories.summary", { count: totalCategories })}
               {!canManage && t("common.readOnlyAccess")}
             </p>
           </div>
           <button
             onClick={() => void loadCategories()}
-            className="h-10 rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className="h-10 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
             type="button"
           >
             {t("common.refresh")}
@@ -169,17 +171,17 @@ export default function CategoriesPage() {
         <div
           className={`rounded-md border px-4 py-3 text-sm ${
             error
-              ? "border-red-200 bg-red-50 text-red-700"
-              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+              ? "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400"
+              : "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-400"
           }`}
         >
           {error ?? message}
         </div>
       )}
 
-      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <div className="border-b border-slate-200 px-5 py-4">
-          <h3 className="text-base font-semibold text-slate-950">
+      <section className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <div className="border-b border-slate-200 dark:border-slate-800 px-5 py-4">
+          <h3 className="text-base font-semibold text-slate-950 dark:text-white">
             {t("categories.allCategories")}
           </h3>
         </div>
@@ -187,18 +189,18 @@ export default function CategoriesPage() {
         {canManage && (
           <form
             onSubmit={handleCreateCategory}
-            className="grid gap-4 border-b border-slate-200 p-5 md:grid-cols-[1fr_2fr_auto]"
+            className="grid gap-4 border-b border-slate-200 dark:border-slate-800 p-5 md:grid-cols-[1fr_2fr_auto]"
           >
             <div>
               <label
                 htmlFor="category-name"
-                className="mb-1.5 block text-sm font-medium text-slate-700"
+                className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
               >
                 {t("categories.categoryName")}
               </label>
               <input
                 id="category-name"
-                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                className="h-10 w-full rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm focus:border-slate-500 dark:focus:border-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-600 dark:bg-slate-900 dark:text-white"
                 onChange={(event) =>
                   setCategoryForm((current) => ({
                     ...current,
@@ -214,16 +216,16 @@ export default function CategoriesPage() {
             <div>
               <label
                 htmlFor="category-description"
-                className="mb-1.5 block text-sm font-medium text-slate-700"
+                className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
               >
                 {t("common.description")}{" "}
-                <span className="text-sm font-normal text-slate-400">
+                <span className="text-sm font-normal text-slate-400 dark:text-slate-500">
                   {t("common.optional")}
                 </span>
               </label>
               <input
                 id="category-description"
-                className="h-10 w-full rounded-md border border-slate-300 px-3 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                className="h-10 w-full rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm focus:border-slate-500 dark:focus:border-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-600 dark:bg-slate-900 dark:text-white"
                 onChange={(event) =>
                   setCategoryForm((current) => ({
                     ...current,
@@ -236,7 +238,7 @@ export default function CategoriesPage() {
             </div>
             <div className="flex items-end">
               <button
-                className="h-10 w-full rounded-md bg-slate-950 px-4 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                className="h-10 w-full rounded-md bg-slate-950 dark:bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-400 dark:disabled:bg-slate-700"
                 disabled={isSaving}
                 type="submit"
               >
@@ -247,15 +249,17 @@ export default function CategoriesPage() {
         )}
 
         {isLoading ? (
-          <div className="p-5 text-sm text-slate-500">
+          <div className="p-5 text-sm text-slate-500 dark:text-slate-400">
             {t("categories.loading")}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-160 text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <thead className="bg-slate-50 dark:bg-slate-800 text-xs uppercase text-slate-500 dark:text-slate-400">
                 <tr>
-                  <th className="px-5 py-3 font-semibold">{t("common.name")}</th>
+                  <th className="px-5 py-3 font-semibold">
+                    {t("common.name")}
+                  </th>
                   <th className="px-5 py-3 font-semibold">
                     {t("common.description")}
                   </th>
@@ -269,9 +273,8 @@ export default function CategoriesPage() {
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
-                {paginate(categories, categoriesPage, categoriesPageSize).map(
-                  (category) => {
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                {categories.map((category) => {
                   const isEditing = editingCategoryId === category.id;
                   return (
                     <tr key={category.id} className="align-top">
@@ -280,13 +283,13 @@ export default function CategoriesPage() {
                           <div>
                             <label
                               htmlFor={`edit-category-name-${category.id}`}
-                              className="mb-1 block text-xs font-medium text-slate-600"
+                              className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400"
                             >
                               {t("common.name")}
                             </label>
                             <input
                               id={`edit-category-name-${category.id}`}
-                              className="h-9 w-full rounded-md border border-slate-300 px-3 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                              className="h-9 w-full rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm focus:border-slate-500 dark:focus:border-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-600 dark:bg-slate-900 dark:text-white"
                               onChange={(event) =>
                                 setCategoryEditForm((current) => ({
                                   ...current,
@@ -297,23 +300,23 @@ export default function CategoriesPage() {
                             />
                           </div>
                         ) : (
-                          <p className="font-medium text-slate-950">
+                          <p className="font-medium text-slate-950 dark:text-white">
                             {category.name}
                           </p>
                         )}
                       </td>
-                      <td className="px-5 py-4 text-slate-500">
+                      <td className="px-5 py-4 text-slate-500 dark:text-slate-400">
                         {isEditing ? (
                           <div>
                             <label
                               htmlFor={`edit-category-desc-${category.id}`}
-                              className="mb-1 block text-xs font-medium text-slate-600"
+                              className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400"
                             >
                               {t("common.description")}
                             </label>
                             <input
                               id={`edit-category-desc-${category.id}`}
-                              className="h-9 w-full rounded-md border border-slate-300 px-3 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                              className="h-9 w-full rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm focus:border-slate-500 dark:focus:border-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-600 dark:bg-slate-900 dark:text-white"
                               onChange={(event) =>
                                 setCategoryEditForm((current) => ({
                                   ...current,
@@ -327,7 +330,7 @@ export default function CategoriesPage() {
                           (category.description ?? "—")
                         )}
                       </td>
-                      <td className="px-5 py-4 text-slate-500">
+                      <td className="px-5 py-4 text-slate-500 dark:text-slate-400">
                         {category._count?.products ?? 0}
                       </td>
                       {canManage && (
@@ -336,7 +339,7 @@ export default function CategoriesPage() {
                             {isEditing ? (
                               <>
                                 <button
-                                  className="h-9 rounded-md bg-slate-950 px-3 text-xs font-medium text-white hover:bg-slate-800 disabled:bg-slate-400"
+                                  className="h-9 rounded-md bg-slate-950 dark:bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-slate-800 dark:hover:bg-emerald-700 disabled:bg-slate-400 dark:disabled:bg-slate-700"
                                   disabled={isSaving}
                                   onClick={() =>
                                     void handleUpdateCategory(category.id)
@@ -346,7 +349,7 @@ export default function CategoriesPage() {
                                   {t("common.save")}
                                 </button>
                                 <button
-                                  className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                                  className="h-9 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                                   onClick={() => setEditingCategoryId(null)}
                                   type="button"
                                 >
@@ -356,14 +359,14 @@ export default function CategoriesPage() {
                             ) : (
                               <>
                                 <button
-                                  className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                                  className="h-9 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                                   onClick={() => startEditCategory(category)}
                                   type="button"
                                 >
                                   {t("common.edit")}
                                 </button>
                                 <button
-                                  className="h-9 rounded-md border border-red-200 bg-white px-3 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:bg-slate-100"
+                                  className="h-9 rounded-md border border-red-200 dark:border-red-900 bg-white dark:bg-slate-900 px-3 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
                                   disabled={isSaving}
                                   onClick={() =>
                                     void handleDeleteCategory(category)
@@ -379,12 +382,11 @@ export default function CategoriesPage() {
                       )}
                     </tr>
                   );
-                },
-                )}
+                })}
                 {categories.length === 0 && (
                   <tr>
                     <td
-                      className="px-5 py-6 text-center text-slate-500"
+                      className="px-5 py-6 text-center text-slate-500 dark:text-slate-400"
                       colSpan={canManage ? 4 : 3}
                     >
                       {t("categories.empty")}
@@ -396,7 +398,7 @@ export default function CategoriesPage() {
             <Pagination
               currentPage={categoriesPage}
               pageSize={categoriesPageSize}
-              totalItems={categories.length}
+              totalItems={totalCategories}
               onPageChange={setCategoriesPage}
               onPageSizeChange={setCategoriesPageSize}
               itemLabel={t("categories.itemLabel")}

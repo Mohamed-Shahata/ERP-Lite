@@ -1,5 +1,9 @@
 import { apiClient } from "./client";
-import type { ApiResponse } from "@/types/api-response";
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  PaginationParams,
+} from "@/types/api-response";
 import type { Product } from "@/types/product.types";
 
 export interface CreateProductPayload {
@@ -26,8 +30,11 @@ export interface UpdateProductPayload {
   isActive?: boolean;
 }
 
-export async function listProductsRequest() {
-  const { data } = await apiClient.get<ApiResponse<Product[]>>("/products");
+export async function listProductsRequest(params: PaginationParams = {}) {
+  const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Product>>>(
+    "/products",
+    { params },
+  );
   return data.data;
 }
 

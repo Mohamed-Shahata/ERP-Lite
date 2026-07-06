@@ -44,13 +44,24 @@ export const en = {
     workspace: "Operations workspace",
     controlCenter: "Business control center",
     logout: "Log out",
+    logoutConfirmTitle: "Log out?",
+    logoutConfirmMessage:
+      "You'll need to sign in again to access your workspace.",
+    logoutConfirmAction: "Log out",
+    logoutCancelAction: "Cancel",
+  },
+  theme: {
+    label: "Theme",
+    light: "Light",
+    dark: "Dark",
   },
   language: {
     label: "Language",
   },
   authLayout: {
     secureHub: "Secure operations hub",
-    tagline: "Finance, inventory, sales, and purchasing in one focused workspace.",
+    tagline:
+      "Finance, inventory, sales, and purchasing in one focused workspace.",
     headline: "Run daily business workflows with clarity and control.",
     roleGated: "Role gated",
     httpOnlyCookies: "HttpOnly cookies",
@@ -77,7 +88,8 @@ export const en = {
   resetPassword: {
     title: "Reset your password",
     subtitle: "Choose a strong password for your ERP Lite account.",
-    missingToken: "This reset link is missing its token. Please request a new one.",
+    missingToken:
+      "This reset link is missing its token. Please request a new one.",
     newPassword: "New password",
     confirmPassword: "Confirm new password",
     resetting: "Resetting…",

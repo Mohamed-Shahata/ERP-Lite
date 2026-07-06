@@ -48,32 +48,34 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
           {t("common.email")}
         </label>
         <input
           type="email"
           {...register("email")}
-          className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+          className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
           placeholder={t("login.emailPlaceholder")}
         />
         {errors.email && (
-          <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            {errors.email.message}
+          </p>
         )}
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
           {t("common.password")}
         </label>
         <input
           type="password"
           {...register("password")}
-          className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+          className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
           placeholder={t("login.passwordPlaceholder")}
         />
         {errors.password && (
-          <p className="mt-1 text-sm text-red-600">
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
             {errors.password.message}
           </p>
         )}
@@ -81,13 +83,13 @@ export function LoginForm() {
 
       <Link
         href="/forgot-password"
-        className="inline-flex text-sm font-medium text-emerald-700 hover:text-emerald-800"
+        className="inline-flex text-sm font-medium text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300"
       >
         {t("login.forgotPassword")}
       </Link>
 
       {serverError && (
-        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400">
           {serverError}
         </p>
       )}
@@ -95,7 +97,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="h-11 w-full rounded-md bg-slate-950 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+        className="h-11 w-full rounded-md bg-slate-950 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-emerald-600 dark:hover:bg-emerald-700"
       >
         {isSubmitting ? t("login.signingIn") : t("login.signIn")}
       </button>

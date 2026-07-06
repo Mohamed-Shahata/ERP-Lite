@@ -94,26 +94,32 @@ export function Pagination({
 
   return (
     <div
-      className={`flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between ${className}`}
+      className={`flex flex-col gap-3 border-t border-slate-200 dark:border-slate-800 px-5 py-4 sm:flex-row sm:items-center sm:justify-between ${className}`}
     >
       {showSummary && (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           {t("pagination.showing")}{" "}
-          <span className="font-medium text-slate-700">{startItem}</span>
+          <span className="font-medium text-slate-700 dark:text-slate-300">
+            {startItem}
+          </span>
           {"–"}
-          <span className="font-medium text-slate-700">{endItem}</span>{" "}
+          <span className="font-medium text-slate-700 dark:text-slate-300">
+            {endItem}
+          </span>{" "}
           {t("pagination.of")}{" "}
-          <span className="font-medium text-slate-700">{totalItems}</span>{" "}
+          <span className="font-medium text-slate-700 dark:text-slate-300">
+            {totalItems}
+          </span>{" "}
           {resolvedItemLabel}
         </p>
       )}
 
       <div className="flex items-center gap-3">
         {onPageSizeChange && (
-          <label className="flex items-center gap-2 text-sm text-slate-600">
+          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
             {t("pagination.rowsPerPage")}
             <select
-              className="h-9 rounded-md border border-slate-300 px-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+              className="h-9 rounded-md border border-slate-300 dark:border-slate-700 px-2 text-sm focus:border-slate-500 dark:focus:border-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-600"
               onChange={(event) => {
                 onPageSizeChange(Number(event.target.value));
                 onPageChange(1);
@@ -132,7 +138,7 @@ export function Pagination({
         <nav className="flex items-center gap-1" aria-label="Pagination">
           <button
             aria-label={t("pagination.previous")}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white text-sm text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
             disabled={safePage === 1}
             onClick={() => goTo(safePage - 1)}
             type="button"
@@ -158,7 +164,7 @@ export function Pagination({
             page === DOTS ? (
               <span
                 key={`dots-${index}`}
-                className="flex h-9 w-9 items-center justify-center text-sm text-slate-400"
+                className="flex h-9 w-9 items-center justify-center text-sm text-slate-400 dark:text-slate-500"
               >
                 {DOTS}
               </span>
@@ -168,8 +174,8 @@ export function Pagination({
                 aria-current={page === safePage ? "page" : undefined}
                 className={`flex h-9 w-9 items-center justify-center rounded-md border text-sm font-medium ${
                   page === safePage
-                    ? "border-slate-950 bg-slate-950 text-white"
-                    : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
+                    ? "border-slate-950 dark:border-emerald-600 bg-slate-950 dark:bg-emerald-600 text-white"
+                    : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
                 onClick={() => goTo(page)}
                 type="button"
@@ -181,7 +187,7 @@ export function Pagination({
 
           <button
             aria-label={t("pagination.next")}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white text-sm text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
             disabled={safePage === totalPages}
             onClick={() => goTo(safePage + 1)}
             type="button"

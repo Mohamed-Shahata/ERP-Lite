@@ -42,7 +42,7 @@ export function ForgotPasswordForm() {
 
   if (successMessage) {
     return (
-      <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+      <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-400">
         {successMessage}
       </p>
     );
@@ -51,26 +51,30 @@ export function ForgotPasswordForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
           {t("common.email")}
         </label>
         <input
           type="email"
           {...register("email")}
-          className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
+          className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
           placeholder={t("login.emailPlaceholder")}
         />
         {errors.email && (
-          <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            {errors.email.message}
+          </p>
         )}
       </div>
 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="h-11 w-full rounded-md bg-slate-950 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+        className="h-11 w-full rounded-md bg-slate-950 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-emerald-600 dark:hover:bg-emerald-700"
       >
-        {isSubmitting ? t("forgotPassword.sending") : t("forgotPassword.sendLink")}
+        {isSubmitting
+          ? t("forgotPassword.sending")
+          : t("forgotPassword.sendLink")}
       </button>
     </form>
   );

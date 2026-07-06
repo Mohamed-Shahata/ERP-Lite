@@ -55,7 +55,10 @@ export default function UsersSettingsPage() {
   }
 
   useEffect(() => {
-    void loadUsers();
+    const id = setTimeout(() => {
+      void loadUsers();
+    }, 0);
+    return () => clearTimeout(id);
   }, []);
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
@@ -139,15 +142,15 @@ export default function UsersSettingsPage() {
   return (
     <div className="max-w-6xl space-y-6">
       <section>
-        <p className="text-sm font-medium text-emerald-700">
+        <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
           {t("users.adminSettings")}
         </p>
         <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-950">
+            <h2 className="text-2xl font-semibold text-slate-950 dark:text-white">
               {t("users.title")}
             </h2>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
               {t("users.summary", {
                 total: users.length,
                 active: activeUsersCount,
@@ -156,7 +159,7 @@ export default function UsersSettingsPage() {
           </div>
           <button
             onClick={() => void loadUsers()}
-            className="h-10 rounded-md border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className="h-10 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
             type="button"
           >
             {t("common.refresh")}
@@ -168,16 +171,16 @@ export default function UsersSettingsPage() {
         <div
           className={`rounded-md border px-4 py-3 text-sm ${
             error
-              ? "border-red-200 bg-red-50 text-red-700"
-              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+              ? "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400"
+              : "border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400"
           }`}
         >
           {error ?? message}
         </div>
       )}
 
-      <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <h3 className="text-base font-semibold text-slate-950">
+      <section className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+        <h3 className="text-base font-semibold text-slate-950 dark:text-white">
           {t("users.createUser")}
         </h3>
         <form
@@ -185,7 +188,7 @@ export default function UsersSettingsPage() {
           className="mt-4 grid gap-3 md:grid-cols-[1fr_1fr_160px_140px_auto]"
         >
           <input
-            className="h-10 rounded-md border border-slate-300 px-3 text-sm"
+            className="h-10 rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm"
             onChange={(event) =>
               setForm((current) => ({ ...current, name: event.target.value }))
             }
@@ -194,7 +197,7 @@ export default function UsersSettingsPage() {
             value={form.name}
           />
           <input
-            className="h-10 rounded-md border border-slate-300 px-3 text-sm"
+            className="h-10 rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm"
             onChange={(event) =>
               setForm((current) => ({ ...current, email: event.target.value }))
             }
@@ -204,7 +207,7 @@ export default function UsersSettingsPage() {
             value={form.email}
           />
           <input
-            className="h-10 rounded-md border border-slate-300 px-3 text-sm"
+            className="h-10 rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm"
             minLength={8}
             onChange={(event) =>
               setForm((current) => ({
@@ -218,7 +221,7 @@ export default function UsersSettingsPage() {
             value={form.password}
           />
           <select
-            className="h-10 rounded-md border border-slate-300 px-3 text-sm"
+            className="h-10 rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm"
             onChange={(event) =>
               setForm((current) => ({
                 ...current,
@@ -234,7 +237,7 @@ export default function UsersSettingsPage() {
             ))}
           </select>
           <button
-            className="h-10 rounded-md bg-slate-950 px-4 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+            className="h-10 rounded-md bg-slate-950 dark:bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-slate-800 dark:hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-400 dark:disabled:bg-slate-700"
             disabled={isSaving}
             type="submit"
           >
@@ -243,29 +246,35 @@ export default function UsersSettingsPage() {
         </form>
       </section>
 
-      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <div className="border-b border-slate-200 px-5 py-4">
-          <h3 className="text-base font-semibold text-slate-950">
+      <section className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <div className="border-b border-slate-200 dark:border-slate-800 px-5 py-4">
+          <h3 className="text-base font-semibold text-slate-950 dark:text-white">
             {t("users.systemUsers")}
           </h3>
         </div>
         {isLoading ? (
-          <div className="p-5 text-sm text-slate-500">{t("users.loading")}</div>
+          <div className="p-5 text-sm text-slate-500 dark:text-slate-400">
+            {t("users.loading")}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-215 text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <thead className="bg-slate-50 dark:bg-slate-800 text-xs uppercase text-slate-500 dark:text-slate-400">
                 <tr>
                   <th className="px-5 py-3 font-semibold">{t("users.user")}</th>
                   <th className="px-5 py-3 font-semibold">{t("users.role")}</th>
-                  <th className="px-5 py-3 font-semibold">{t("common.status")}</th>
-                  <th className="px-5 py-3 font-semibold">{t("users.created")}</th>
+                  <th className="px-5 py-3 font-semibold">
+                    {t("common.status")}
+                  </th>
+                  <th className="px-5 py-3 font-semibold">
+                    {t("users.created")}
+                  </th>
                   <th className="px-5 py-3 text-right font-semibold">
                     {t("common.actions")}
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                 {users.map((user) => {
                   const isEditing = editingId === user.id;
 
@@ -275,7 +284,7 @@ export default function UsersSettingsPage() {
                         {isEditing ? (
                           <div className="grid gap-2">
                             <input
-                              className="h-9 rounded-md border border-slate-300 px-3 text-sm"
+                              className="h-9 rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm"
                               onChange={(event) =>
                                 setEditForm((current) => ({
                                   ...current,
@@ -285,7 +294,7 @@ export default function UsersSettingsPage() {
                               value={editForm.name}
                             />
                             <input
-                              className="h-9 rounded-md border border-slate-300 px-3 text-sm"
+                              className="h-9 rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm"
                               onChange={(event) =>
                                 setEditForm((current) => ({
                                   ...current,
@@ -296,7 +305,7 @@ export default function UsersSettingsPage() {
                               value={editForm.email}
                             />
                             <input
-                              className="h-9 rounded-md border border-slate-300 px-3 text-sm"
+                              className="h-9 rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm"
                               minLength={8}
                               onChange={(event) =>
                                 setEditForm((current) => ({
@@ -311,17 +320,19 @@ export default function UsersSettingsPage() {
                           </div>
                         ) : (
                           <div>
-                            <p className="font-medium text-slate-950">
+                            <p className="font-medium text-slate-950 dark:text-white">
                               {user.name}
                             </p>
-                            <p className="mt-1 text-slate-500">{user.email}</p>
+                            <p className="mt-1 text-slate-500 dark:text-slate-400">
+                              {user.email}
+                            </p>
                           </div>
                         )}
                       </td>
                       <td className="px-5 py-4">
                         {isEditing ? (
                           <select
-                            className="h-9 rounded-md border border-slate-300 px-3 text-sm"
+                            className="h-9 rounded-md border border-slate-300 dark:border-slate-700 px-3 text-sm"
                             onChange={(event) =>
                               setEditForm((current) => ({
                                 ...current,
@@ -337,7 +348,7 @@ export default function UsersSettingsPage() {
                             ))}
                           </select>
                         ) : (
-                          <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
+                          <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-300">
                             {user.role}
                           </span>
                         )}
@@ -346,22 +357,26 @@ export default function UsersSettingsPage() {
                         <span
                           className={`rounded px-2 py-1 text-xs font-medium ${
                             user.isActive
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-slate-100 text-slate-500"
+                              ? "bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-400"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
                           }`}
                         >
-                          {user.isActive ? t("common.active") : t("common.inactive")}
+                          {user.isActive
+                            ? t("common.active")
+                            : t("common.inactive")}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-slate-500">
-                        {new Date(user.createdAt).toLocaleDateString(dateLocale)}
+                      <td className="px-5 py-4 text-slate-500 dark:text-slate-400">
+                        {new Date(user.createdAt).toLocaleDateString(
+                          dateLocale,
+                        )}
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex justify-end gap-2">
                           {isEditing ? (
                             <>
                               <button
-                                className="h-9 rounded-md bg-slate-950 px-3 text-xs font-medium text-white hover:bg-slate-800 disabled:bg-slate-400"
+                                className="h-9 rounded-md bg-slate-950 dark:bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-slate-800 dark:hover:bg-emerald-700 disabled:bg-slate-400 dark:disabled:bg-slate-700"
                                 disabled={isSaving}
                                 onClick={() => void handleUpdate(user.id)}
                                 type="button"
@@ -369,7 +384,7 @@ export default function UsersSettingsPage() {
                                 {t("common.save")}
                               </button>
                               <button
-                                className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                                className="h-9 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 onClick={() => setEditingId(null)}
                                 type="button"
                               >
@@ -379,14 +394,14 @@ export default function UsersSettingsPage() {
                           ) : (
                             <>
                               <button
-                                className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                                className="h-9 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 onClick={() => startEdit(user)}
                                 type="button"
                               >
                                 {t("common.edit")}
                               </button>
                               <button
-                                className="h-9 rounded-md border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                                className="h-9 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
                                 disabled={isSaving}
                                 onClick={() => void handleActiveChange(user)}
                                 type="button"

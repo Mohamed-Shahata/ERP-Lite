@@ -46,6 +46,16 @@ export const ar: Messages = {
     workspace: "مساحة العمليات",
     controlCenter: "مركز التحكم",
     logout: "تسجيل الخروج",
+    logoutConfirmTitle: "تسجيل الخروج؟",
+    logoutConfirmMessage:
+      "ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى مساحة عملك.",
+    logoutConfirmAction: "تسجيل الخروج",
+    logoutCancelAction: "إلغاء",
+  },
+  theme: {
+    label: "المظهر",
+    light: "فاتح",
+    dark: "داكن",
   },
   language: {
     label: "اللغة",

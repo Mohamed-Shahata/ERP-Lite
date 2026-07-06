@@ -41,15 +41,15 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-lg border border-slate-200 bg-white p-6">
+      <section className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
         <div className="max-w-3xl">
-          <p className="text-sm font-medium text-emerald-700">
+          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
             {t("dashboard.overview")}
           </p>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+          <h2 className="mt-2 text-2xl font-semibold text-slate-950 dark:text-white">
             {t("dashboard.title")}
           </h2>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
+          <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
             {t("dashboard.description")}
           </p>
         </div>
@@ -59,26 +59,28 @@ export default function DashboardPage() {
         {metrics.map((metric) => (
           <div
             key={metric.label}
-            className="rounded-lg border border-slate-200 bg-white p-5"
+            className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5"
           >
-            <p className="text-sm text-slate-500">{metric.label}</p>
-            <p className="mt-3 text-2xl font-semibold text-slate-950">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {metric.label}
+            </p>
+            <p className="mt-3 text-2xl font-semibold text-slate-950 dark:text-white">
               {metric.value}
             </p>
-            <p className="mt-2 text-xs font-medium text-emerald-700">
+            <p className="mt-2 text-xs font-medium text-emerald-700 dark:text-emerald-400">
               {metric.trend}
             </p>
           </div>
         ))}
       </section>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-6">
+      <section className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-slate-950">
+            <h2 className="text-lg font-semibold text-slate-950 dark:text-white">
               {t("dashboard.modulesTitle")}
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               {t("dashboard.modulesSubtitle")}
             </p>
           </div>
@@ -87,7 +89,7 @@ export default function DashboardPage() {
           {modules.map((module) => (
             <div
               key={module}
-              className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700"
+              className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300"
             >
               {module}
             </div>

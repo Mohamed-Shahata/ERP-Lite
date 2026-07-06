@@ -1,6 +1,7 @@
 "use client";
 
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useTranslations } from "@/lib/i18n/use-translations";
 
 export function AuthLayoutPanel({ children }: { children: React.ReactNode }) {
@@ -21,7 +22,9 @@ export function AuthLayoutPanel({ children }: { children: React.ReactNode }) {
           </div>
           <div>
             <p className="text-sm font-semibold">{t("shell.brand")}</p>
-            <p className="text-xs text-slate-400">{t("authLayout.secureHub")}</p>
+            <p className="text-xs text-slate-400">
+              {t("authLayout.secureHub")}
+            </p>
           </div>
         </div>
         <div className="max-w-xl">
@@ -44,11 +47,15 @@ export function AuthLayoutPanel({ children }: { children: React.ReactNode }) {
         </div>
         <p className="text-xs text-slate-500">{t("authLayout.footer")}</p>
       </section>
-      <main className="flex min-h-screen flex-col items-center justify-center px-4 py-10">
-        <div className="mb-4 lg:hidden">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 py-10 dark:bg-slate-950">
+        <div className="mb-4 flex w-full max-w-md items-center justify-between lg:hidden">
           <LanguageSwitcher />
+          <ThemeToggle />
         </div>
-        <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-950/20">
+        <div className="hidden w-full max-w-md justify-end lg:flex">
+          <ThemeToggle className="mb-4" />
+        </div>
+        <div className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-950/20 dark:border-slate-800 dark:bg-slate-900">
           {children}
         </div>
       </main>

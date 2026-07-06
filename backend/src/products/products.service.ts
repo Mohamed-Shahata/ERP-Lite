@@ -4,6 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CategoriesService } from '../categories/categories.service';
+import { PaginationQueryDto } from '../common/dto/pagination.dto';
+import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import {
@@ -21,6 +23,12 @@ export class ProductsService {
 
   async findAll(): Promise<ProductWithCategory[]> {
     return this.productsRepository.findAll();
+  }
+
+  async findAllPaginated(
+    query: PaginationQueryDto,
+  ): Promise<PaginatedResult<ProductWithCategory>> {
+    return this.productsRepository.findAllPaginated(query);
   }
 
   async findOne(id: string): Promise<ProductWithCategory> {

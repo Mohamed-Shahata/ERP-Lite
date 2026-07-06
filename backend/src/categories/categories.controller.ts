@@ -6,10 +6,12 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Role } from '../../generated/prisma/enums';
 import { Roles } from '../common/decorators/roles.decorator';
+import { PaginationQueryDto } from '../common/dto/pagination.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { CategoriesService } from './categories.service';
@@ -23,8 +25,8 @@ export class CategoriesController {
 
   // Any authenticated user (ADMIN, MANAGER, EMPLOYEE) can view categories.
   @Get()
-  findAll() {
-    return this.categoriesService.findAll();
+  findAll(@Query() query: PaginationQueryDto) {
+    return this.categoriesService.findAllPaginated(query);
   }
 
   @Get(':id')

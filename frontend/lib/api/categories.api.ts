@@ -1,5 +1,9 @@
 import { apiClient } from "./client";
-import type { ApiResponse } from "@/types/api-response";
+import type {
+  ApiResponse,
+  PaginatedResponse,
+  PaginationParams,
+} from "@/types/api-response";
 import type { Category } from "@/types/product.types";
 
 export interface CreateCategoryPayload {
@@ -12,8 +16,10 @@ export interface UpdateCategoryPayload {
   description?: string;
 }
 
-export async function listCategoriesRequest() {
-  const { data } = await apiClient.get<ApiResponse<Category[]>>("/categories");
+export async function listCategoriesRequest(params: PaginationParams = {}) {
+  const { data } = await apiClient.get<
+    ApiResponse<PaginatedResponse<Category>>
+  >("/categories", { params });
   return data.data;
 }
 

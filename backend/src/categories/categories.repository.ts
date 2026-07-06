@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../infrastructure/prisma/prisma.service';
-import { Category } from '../../generated/prisma/client';
+import { Category, Prisma } from '../../generated/prisma/client';
+import { PaginationQueryDto } from '../common/dto/pagination.dto';
+import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
+import { paginate } from '../common/utils/paginate.util';
 
 export interface CategoryWithProductCount extends Category {
   _count: { products: number };
@@ -24,6 +27,27 @@ export class CategoriesRepository {
     return this.prisma.category.findMany({
       include: { _count: { select: { products: true } } },
       orderBy: { name: 'asc' },
+    });
+  }
+
+  findAllPaginated(
+    query: PaginationQueryDto,
+  ): Promise<PaginatedResult<CategoryWithProductCount>> {
+    const where: Prisma.CategoryWhereInput = query.search
+      ? { name: { contains: query.search, mode: 'insensitive' } }
+      : {};
+
+    return paginate<CategoryWithProductCount>({
+      page: query.page,
+      limit: query.limit,
+      findMany: (args) =>
+        this.prisma.category.findMany({
+          ...args,
+          where,
+          include: { _count: { select: { products: true } } },
+          orderBy: { name: 'asc' },
+        }),
+      count: () => this.prisma.category.count({ where }),
     });
   }
 

@@ -6,10 +6,12 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Role } from '../../generated/prisma/enums';
 import { Roles } from '../common/decorators/roles.decorator';
+import { PaginationQueryDto } from '../common/dto/pagination.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -23,8 +25,8 @@ export class ProductsController {
 
   // Any authenticated user (ADMIN, MANAGER, EMPLOYEE) can view products.
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  findAll(@Query() query: PaginationQueryDto) {
+    return this.productsService.findAllPaginated(query);
   }
 
   @Get(':id')

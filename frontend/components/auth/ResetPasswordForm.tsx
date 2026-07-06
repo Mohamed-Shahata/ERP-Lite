@@ -49,50 +49,54 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
   if (!token) {
     return (
-      <p className="text-sm text-red-600">{t("resetPassword.missingToken")}</p>
+      <p className="text-sm text-red-600 dark:text-red-400">
+        {t("resetPassword.missingToken")}
+      </p>
     );
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <label className="mb-1 block text-sm font-medium">
+        <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
           {t("resetPassword.newPassword")}
         </label>
         <input
           type="password"
           {...register("newPassword")}
-          className="w-full rounded-md border px-3 py-2"
+          className="w-full rounded-md border border-slate-300 px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
         />
         {errors.newPassword && (
-          <p className="mt-1 text-sm text-red-600">
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
             {errors.newPassword.message}
           </p>
         )}
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">
+        <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
           {t("resetPassword.confirmPassword")}
         </label>
         <input
           type="password"
           {...register("confirmNewPassword")}
-          className="w-full rounded-md border px-3 py-2"
+          className="w-full rounded-md border border-slate-300 px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
         />
         {errors.confirmNewPassword && (
-          <p className="mt-1 text-sm text-red-600">
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
             {errors.confirmNewPassword.message}
           </p>
         )}
       </div>
 
-      {serverError && <p className="text-sm text-red-600">{serverError}</p>}
+      {serverError && (
+        <p className="text-sm text-red-600 dark:text-red-400">{serverError}</p>
+      )}
 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-md bg-blue-600 py-2 text-white disabled:opacity-50"
+        className="w-full rounded-md bg-slate-950 py-2 text-white hover:bg-slate-800 disabled:opacity-50 dark:bg-emerald-600 dark:hover:bg-emerald-700"
       >
         {isSubmitting ? t("resetPassword.resetting") : t("resetPassword.reset")}
       </button>
