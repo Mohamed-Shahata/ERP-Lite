@@ -19,6 +19,11 @@ export async function loginRequest(payload: LoginFormValues) {
   return data.data.user;
 }
 
+export async function meRequest() {
+  const { data } = await apiClient.get<ApiResponse<AuthUser>>("/auth/me");
+  return data.data;
+}
+
 // POST /auth/logout — revokes the refresh token server-side and clears cookies.
 export async function logoutRequest() {
   await apiClient.post("/auth/logout");

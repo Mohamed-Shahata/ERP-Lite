@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   Patch,
   UseGuards,
@@ -32,10 +33,14 @@ import {
   clearAuthCookies,
   REFRESH_TOKEN_COOKIE,
 } from '../common/cookies/auth-cookies.util';
+import { UsersService } from '../users/users.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -82,6 +87,12 @@ export class AuthController {
     await this.authService.logout(rawRefreshToken);
     clearAuthCookies(res);
     return { message: 'Logged out' };
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  me(@CurrentUser() user: CurrentUserPayload) {
+    return this.usersService.getMe(user.id);
   }
 
   @Patch('change-password')

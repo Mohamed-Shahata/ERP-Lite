@@ -1,18 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  changePasswordSchema,
+  createChangePasswordSchema,
   type ChangePasswordFormValues,
 } from "@/lib/auth/auth.schema";
 import { changePasswordRequest } from "@/lib/api/auth.api";
+import { useTranslations } from "@/lib/i18n/use-translations";
 
 export function ChangePasswordForm() {
+  const { t, messages } = useTranslations();
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const changePasswordSchema = useMemo(
+    () => createChangePasswordSchema(messages.validation),
+    [messages.validation],
+  );
 
   const {
     register,
@@ -32,7 +39,7 @@ export function ChangePasswordForm() {
         currentPassword: values.currentPassword,
         newPassword: values.newPassword,
       });
-      setSuccessMessage("Password changed successfully.");
+      setSuccessMessage(t("changePassword.success"));
       reset();
     } catch (err) {
       setServerError((err as Error).message);
@@ -42,10 +49,10 @@ export function ChangePasswordForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-md">
+    <form onSubmit={handleSubmit(onSubmit)} className="max-w-md space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-1">
-          Current password
+        <label className="mb-1 block text-sm font-medium">
+          {t("changePassword.currentPassword")}
         </label>
         <input
           type="password"
@@ -53,29 +60,31 @@ export function ChangePasswordForm() {
           className="w-full rounded-md border px-3 py-2"
         />
         {errors.currentPassword && (
-          <p className="text-sm text-red-600 mt-1">
+          <p className="mt-1 text-sm text-red-600">
             {errors.currentPassword.message}
           </p>
         )}
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">New password</label>
+        <label className="mb-1 block text-sm font-medium">
+          {t("changePassword.newPassword")}
+        </label>
         <input
           type="password"
           {...register("newPassword")}
           className="w-full rounded-md border px-3 py-2"
         />
         {errors.newPassword && (
-          <p className="text-sm text-red-600 mt-1">
+          <p className="mt-1 text-sm text-red-600">
             {errors.newPassword.message}
           </p>
         )}
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">
-          Confirm new password
+        <label className="mb-1 block text-sm font-medium">
+          {t("changePassword.confirmPassword")}
         </label>
         <input
           type="password"
@@ -83,7 +92,7 @@ export function ChangePasswordForm() {
           className="w-full rounded-md border px-3 py-2"
         />
         {errors.confirmNewPassword && (
-          <p className="text-sm text-red-600 mt-1">
+          <p className="mt-1 text-sm text-red-600">
             {errors.confirmNewPassword.message}
           </p>
         )}
@@ -97,9 +106,9 @@ export function ChangePasswordForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="rounded-md bg-blue-600 text-white px-4 py-2 disabled:opacity-50"
+        className="rounded-md bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
       >
-        {isSubmitting ? "Saving…" : "Change password"}
+        {isSubmitting ? t("changePassword.saving") : t("changePassword.submit")}
       </button>
     </form>
   );

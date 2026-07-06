@@ -1,34 +1,56 @@
-const metrics = [
-  { label: "Open sales orders", value: "24", trend: "+12% this week" },
-  { label: "Pending purchases", value: "8", trend: "3 need approval" },
-  { label: "Low stock items", value: "15", trend: "Check inventory" },
-  { label: "Unpaid invoices", value: "$18.4k", trend: "Due this month" },
-];
+"use client";
 
-const modules = [
-  "Customers",
-  "Suppliers",
-  "Products",
-  "Sales orders",
-  "Purchase orders",
-  "Invoices",
-  "Payments",
-  "Stock movements",
-];
+import { useTranslations } from "@/lib/i18n/use-translations";
 
 export default function DashboardPage() {
+  const { t } = useTranslations();
+
+  const metrics = [
+    {
+      label: t("dashboard.metrics.openSalesOrders"),
+      value: "24",
+      trend: t("dashboard.metrics.openSalesTrend"),
+    },
+    {
+      label: t("dashboard.metrics.pendingPurchases"),
+      value: "8",
+      trend: t("dashboard.metrics.pendingPurchasesTrend"),
+    },
+    {
+      label: t("dashboard.metrics.lowStockItems"),
+      value: "15",
+      trend: t("dashboard.metrics.lowStockTrend"),
+    },
+    {
+      label: t("dashboard.metrics.unpaidInvoices"),
+      value: "$18.4k",
+      trend: t("dashboard.metrics.unpaidInvoicesTrend"),
+    },
+  ];
+
+  const modules = [
+    t("dashboard.modules.customers"),
+    t("dashboard.modules.suppliers"),
+    t("dashboard.modules.products"),
+    t("dashboard.modules.salesOrders"),
+    t("dashboard.modules.purchaseOrders"),
+    t("dashboard.modules.invoices"),
+    t("dashboard.modules.payments"),
+    t("dashboard.modules.stockMovements"),
+  ];
+
   return (
     <div className="space-y-6">
       <section className="rounded-lg border border-slate-200 bg-white p-6">
         <div className="max-w-3xl">
-          <p className="text-sm font-medium text-emerald-700">Overview</p>
+          <p className="text-sm font-medium text-emerald-700">
+            {t("dashboard.overview")}
+          </p>
           <h2 className="mt-2 text-2xl font-semibold text-slate-950">
-            A clean operating desk for your ERP data.
+            {t("dashboard.title")}
           </h2>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            The backend currently exposes authentication endpoints. The
-            business modules below match the Prisma ERP models and are ready for
-            API-backed screens when those controllers are added.
+            {t("dashboard.description")}
           </p>
         </div>
       </section>
@@ -54,10 +76,10 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-slate-950">
-              ERP modules
+              {t("dashboard.modulesTitle")}
             </h2>
             <p className="text-sm text-slate-500">
-              Structure prepared for the backend domain models.
+              {t("dashboard.modulesSubtitle")}
             </p>
           </div>
         </div>

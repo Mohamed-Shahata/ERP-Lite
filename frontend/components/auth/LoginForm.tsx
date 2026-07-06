@@ -1,19 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema, type LoginFormValues } from "@/lib/auth/auth.schema";
+import {
+  createLoginSchema,
+  type LoginFormValues,
+} from "@/lib/auth/auth.schema";
 import { loginRequest } from "@/lib/api/auth.api";
 import { useAuthStore } from "@/lib/auth/auth-store";
+import { useTranslations } from "@/lib/i18n/use-translations";
 
 export function LoginForm() {
   const router = useRouter();
   const setUser = useAuthStore((s) => s.setUser);
+  const { t, messages } = useTranslations();
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const loginSchema = useMemo(
+    () => createLoginSchema(messages.validation),
+    [messages.validation],
+  );
 
   const {
     register,
@@ -39,13 +49,13 @@ export function LoginForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
         <label className="mb-1.5 block text-sm font-medium text-slate-700">
-          Email
+          {t("common.email")}
         </label>
         <input
           type="email"
           {...register("email")}
           className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
-          placeholder="you@company.com"
+          placeholder={t("login.emailPlaceholder")}
         />
         {errors.email && (
           <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
@@ -54,13 +64,13 @@ export function LoginForm() {
 
       <div>
         <label className="mb-1.5 block text-sm font-medium text-slate-700">
-          Password
+          {t("common.password")}
         </label>
         <input
           type="password"
           {...register("password")}
           className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
-          placeholder="Enter your password"
+          placeholder={t("login.passwordPlaceholder")}
         />
         {errors.password && (
           <p className="mt-1 text-sm text-red-600">
@@ -73,7 +83,7 @@ export function LoginForm() {
         href="/forgot-password"
         className="inline-flex text-sm font-medium text-emerald-700 hover:text-emerald-800"
       >
-        Forgot your password?
+        {t("login.forgotPassword")}
       </Link>
 
       {serverError && (
@@ -87,7 +97,7 @@ export function LoginForm() {
         disabled={isSubmitting}
         className="h-11 w-full rounded-md bg-slate-950 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isSubmitting ? "Signing in..." : "Sign in"}
+        {isSubmitting ? t("login.signingIn") : t("login.signIn")}
       </button>
     </form>
   );

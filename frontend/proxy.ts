@@ -24,7 +24,7 @@ export function proxy(request: NextRequest) {
   }
 
   const role = decodeJwtRole(accessToken);
-  if (!role || !rule.roles.includes(role as typeof rule.roles[number])) {
+  if (!role || !rule.roles.includes(role as (typeof rule.roles)[number])) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
@@ -32,5 +32,11 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/settings/:path*", "/dashboard/:path*"],
+  matcher: [
+    "/",
+    "/settings/:path*",
+    "/dashboard/:path*",
+    "/products/:path*",
+    "/categories/:path*",
+  ],
 };

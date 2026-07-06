@@ -10,11 +10,13 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { MailModule } from '../common/mail/mail.module';
 import { ConfigKeys } from '../config/configuration';
 import type { StringValue } from 'ms';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     PassportModule,
     MailModule,
+    UsersModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

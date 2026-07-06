@@ -17,6 +17,14 @@ body {
   color: var(--foreground);
 }
 
+[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left;
+}
+
 button,
 a,
 input {

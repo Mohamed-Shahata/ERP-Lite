@@ -1,48 +1,65 @@
 import { z } from "zod";
+import type { Messages } from "@/lib/i18n/types";
 
-// Mirrors backend LoginDto
-export const loginSchema = z.object({
-  email: z.string().email("Enter a valid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
-export type LoginFormValues = z.infer<typeof loginSchema>;
-
-// Mirrors backend ChangePasswordDto
-export const changePasswordSchema = z
-  .object({
-    currentPassword: z.string().min(1, "Current password is required"),
-    newPassword: z
-      .string()
-      .min(8, "New password must be at least 8 characters"),
-    confirmNewPassword: z.string().min(1, "Please confirm your new password"),
-  })
-  .refine((data) => data.newPassword === data.confirmNewPassword, {
-    message: "Passwords don't match",
-    path: ["confirmNewPassword"],
+export function createLoginSchema(v: Messages["validation"]) {
+  return z.object({
+    email: z.string().email(v.emailInvalid),
+    password: z.string().min(8, v.passwordMin),
   });
-export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
+}
 
-// Mirrors backend ForgotPasswordDto
-export const forgotPasswordSchema = z.object({
-  email: z.string().email("Enter a valid email"),
-});
-export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+export type LoginFormValues = z.infer<ReturnType<typeof createLoginSchema>>;
 
-// Mirrors backend ResetPasswordDto (token comes from the URL, not typed by the user)
-export const resetPasswordSchema = z
-  .object({
-    newPassword: z.string().min(8, "Password must be at least 8 characters"),
-    confirmNewPassword: z.string().min(1, "Please confirm your new password"),
-  })
-  .refine((data) => data.newPassword === data.confirmNewPassword, {
-    message: "Passwords don't match",
-    path: ["confirmNewPassword"],
+export function createChangePasswordSchema(v: Messages["validation"]) {
+  return z
+    .object({
+      currentPassword: z.string().min(1, v.currentPasswordRequired),
+      newPassword: z.string().min(8, v.newPasswordMin),
+      confirmNewPassword: z.string().min(1, v.confirmPasswordRequired),
+    })
+    .refine((data) => data.newPassword === data.confirmNewPassword, {
+      message: v.passwordsDontMatch,
+      path: ["confirmNewPassword"],
+    });
+}
+
+export type ChangePasswordFormValues = z.infer<
+  ReturnType<typeof createChangePasswordSchema>
+>;
+
+export function createForgotPasswordSchema(v: Messages["validation"]) {
+  return z.object({
+    email: z.string().email(v.emailInvalid),
   });
-export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+}
 
-// Mirrors backend ChangeEmailDto
-export const changeEmailSchema = z.object({
-  userId: z.string().uuid("Must be a valid user id"),
-  newEmail: z.string().email("Enter a valid email"),
-});
-export type ChangeEmailFormValues = z.infer<typeof changeEmailSchema>;
+export type ForgotPasswordFormValues = z.infer<
+  ReturnType<typeof createForgotPasswordSchema>
+>;
+
+export function createResetPasswordSchema(v: Messages["validation"]) {
+  return z
+    .object({
+      newPassword: z.string().min(8, v.passwordMin),
+      confirmNewPassword: z.string().min(1, v.confirmPasswordRequired),
+    })
+    .refine((data) => data.newPassword === data.confirmNewPassword, {
+      message: v.passwordsDontMatch,
+      path: ["confirmNewPassword"],
+    });
+}
+
+export type ResetPasswordFormValues = z.infer<
+  ReturnType<typeof createResetPasswordSchema>
+>;
+
+export function createChangeEmailSchema(v: Messages["validation"]) {
+  return z.object({
+    userId: z.string().uuid(v.userIdInvalid),
+    newEmail: z.string().email(v.emailInvalid),
+  });
+}
+
+export type ChangeEmailFormValues = z.infer<
+  ReturnType<typeof createChangeEmailSchema>
+>;

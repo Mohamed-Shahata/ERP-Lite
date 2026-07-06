@@ -6,6 +6,8 @@ export interface RouteRule {
 export const ROUTE_RULES: RouteRule[] = [
   { pattern: "/settings/users", roles: ["ADMIN"] },
   { pattern: "/settings", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
+  { pattern: "/products", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
+  { pattern: "/categories", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
   { pattern: "/dashboard", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
 ];
 

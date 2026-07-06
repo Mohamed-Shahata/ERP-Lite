@@ -1,17 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  forgotPasswordSchema,
+  createForgotPasswordSchema,
   type ForgotPasswordFormValues,
 } from "@/lib/auth/auth.schema";
 import { forgotPasswordRequest } from "@/lib/api/auth.api";
+import { useTranslations } from "@/lib/i18n/use-translations";
 
 export function ForgotPasswordForm() {
+  const { t, messages } = useTranslations();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const forgotPasswordSchema = useMemo(
+    () => createForgotPasswordSchema(messages.validation),
+    [messages.validation],
+  );
 
   const {
     register,
@@ -27,9 +34,7 @@ export function ForgotPasswordForm() {
       const result = await forgotPasswordRequest(values.email);
       setSuccessMessage(result.message);
     } catch {
-      setSuccessMessage(
-        "If that email exists, a reset link has been sent to it.",
-      );
+      setSuccessMessage(t("forgotPassword.successFallback"));
     } finally {
       setIsSubmitting(false);
     }
@@ -47,13 +52,13 @@ export function ForgotPasswordForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
         <label className="mb-1.5 block text-sm font-medium text-slate-700">
-          Email
+          {t("common.email")}
         </label>
         <input
           type="email"
           {...register("email")}
           className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
-          placeholder="you@company.com"
+          placeholder={t("login.emailPlaceholder")}
         />
         {errors.email && (
           <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
@@ -65,7 +70,7 @@ export function ForgotPasswordForm() {
         disabled={isSubmitting}
         className="h-11 w-full rounded-md bg-slate-950 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isSubmitting ? "Sending..." : "Send reset link"}
+        {isSubmitting ? t("forgotPassword.sending") : t("forgotPassword.sendLink")}
       </button>
     </form>
   );

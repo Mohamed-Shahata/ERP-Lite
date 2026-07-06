@@ -5,9 +5,13 @@ export interface AuthUser {
   name: string;
   email: string;
   role: Role;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface LoginResponseData {
-  accessToken: string;
   user: AuthUser;
 }
+
+export type SystemUser = Required<AuthUser>;

@@ -1,18 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  changeEmailSchema,
+  createChangeEmailSchema,
   type ChangeEmailFormValues,
 } from "@/lib/auth/auth.schema";
 import { changeEmailRequest } from "@/lib/api/auth.api";
+import { useTranslations } from "@/lib/i18n/use-translations";
 
 export function ChangeEmailForm() {
+  const { t, messages } = useTranslations();
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const changeEmailSchema = useMemo(
+    () => createChangeEmailSchema(messages.validation),
+    [messages.validation],
+  );
 
   const {
     register,
@@ -54,7 +61,9 @@ export function ChangeEmailForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">New email</label>
+        <label className="mb-1 block text-sm font-medium">
+          {t("common.email")}
+        </label>
         <input
           type="email"
           {...register("newEmail")}
