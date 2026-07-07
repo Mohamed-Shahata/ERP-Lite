@@ -94,6 +94,31 @@ function SuppliersIcon() {
   );
 }
 
+function CustomersIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      className="h-5 w-5"
+    >
+      <circle cx="9" cy="7.5" r="3" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3.5 19.5a5.5 5.5 0 0 1 11 0"
+      />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M16 8a2.75 2.75 0 1 1 0 5.5M18.5 19.5a4.75 4.75 0 0 0-3.9-4.67"
+      />
+    </svg>
+  );
+}
+
 function PurchaseOrdersIcon() {
   return (
     <svg
@@ -212,6 +237,7 @@ const navItems: Array<{
   { href: "/dashboard", labelKey: "nav.overview", icon: OverviewIcon },
   { href: "/products", labelKey: "nav.products", icon: ProductsIcon },
   { href: "/categories", labelKey: "nav.categories", icon: CategoriesIcon },
+  { href: "/customers", labelKey: "nav.customers", icon: CustomersIcon },
   // Suppliers are commercial/purchasing data — admins and managers only.
   {
     href: "/suppliers",
@@ -226,6 +252,12 @@ const navItems: Array<{
     labelKey: "nav.purchaseOrders",
     icon: PurchaseOrdersIcon,
     roles: ["ADMIN", "MANAGER"],
+  },
+  // Sales orders are core — available to all authenticated users.
+  {
+    href: "/sales-orders",
+    labelKey: "nav.salesOrders",
+    icon: PurchaseOrdersIcon,
   },
   {
     href: "/settings",
@@ -413,7 +445,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               >
                 <MenuIcon />
               </button>
-              <div>
+              <div className="hidden md:block">
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   {t("shell.brand")}
                 </p>
