@@ -44,7 +44,6 @@ const productsData: Array<{
   category: string;
   costPrice: number;
   sellPrice: number;
-  quantityInStock: number;
   reorderLevel: number;
 }> = [
   // Electronics
@@ -55,7 +54,6 @@ const productsData: Array<{
     category: 'Electronics',
     costPrice: 4200,
     sellPrice: 5500,
-    quantityInStock: 25,
     reorderLevel: 5,
   },
   {
@@ -65,7 +63,6 @@ const productsData: Array<{
     category: 'Electronics',
     costPrice: 250,
     sellPrice: 400,
-    quantityInStock: 60,
     reorderLevel: 10,
   },
   {
@@ -75,7 +72,6 @@ const productsData: Array<{
     category: 'Electronics',
     costPrice: 900,
     sellPrice: 1350,
-    quantityInStock: 40,
     reorderLevel: 8,
   },
   {
@@ -85,7 +81,6 @@ const productsData: Array<{
     category: 'Electronics',
     costPrice: 8500,
     sellPrice: 11000,
-    quantityInStock: 10,
     reorderLevel: 3,
   },
   {
@@ -95,7 +90,6 @@ const productsData: Array<{
     category: 'Electronics',
     costPrice: 600,
     sellPrice: 950,
-    quantityInStock: 50,
     reorderLevel: 10,
   },
   {
@@ -105,7 +99,6 @@ const productsData: Array<{
     category: 'Electronics',
     costPrice: 180,
     sellPrice: 300,
-    quantityInStock: 100,
     reorderLevel: 20,
   },
   {
@@ -115,7 +108,6 @@ const productsData: Array<{
     category: 'Electronics',
     costPrice: 1500,
     sellPrice: 2100,
-    quantityInStock: 15,
     reorderLevel: 5,
   },
 
@@ -127,7 +119,6 @@ const productsData: Array<{
     category: 'Computers & Laptops',
     costPrice: 15000,
     sellPrice: 19500,
-    quantityInStock: 20,
     reorderLevel: 5,
   },
   {
@@ -137,7 +128,6 @@ const productsData: Array<{
     category: 'Computers & Laptops',
     costPrice: 28000,
     sellPrice: 35000,
-    quantityInStock: 8,
     reorderLevel: 2,
   },
   {
@@ -147,7 +137,6 @@ const productsData: Array<{
     category: 'Computers & Laptops',
     costPrice: 80,
     sellPrice: 150,
-    quantityInStock: 150,
     reorderLevel: 30,
   },
   {
@@ -157,7 +146,6 @@ const productsData: Array<{
     category: 'Computers & Laptops',
     costPrice: 350,
     sellPrice: 550,
-    quantityInStock: 70,
     reorderLevel: 15,
   },
   {
@@ -167,7 +155,6 @@ const productsData: Array<{
     category: 'Computers & Laptops',
     costPrice: 3200,
     sellPrice: 4300,
-    quantityInStock: 30,
     reorderLevel: 8,
   },
   {
@@ -177,7 +164,6 @@ const productsData: Array<{
     category: 'Computers & Laptops',
     costPrice: 900,
     sellPrice: 1300,
-    quantityInStock: 45,
     reorderLevel: 10,
   },
   {
@@ -187,7 +173,6 @@ const productsData: Array<{
     category: 'Computers & Laptops',
     costPrice: 200,
     sellPrice: 350,
-    quantityInStock: 80,
     reorderLevel: 15,
   },
 
@@ -199,7 +184,6 @@ const productsData: Array<{
     category: 'Mobile Phones',
     costPrice: 18000,
     sellPrice: 22500,
-    quantityInStock: 25,
     reorderLevel: 5,
   },
   {
@@ -209,7 +193,6 @@ const productsData: Array<{
     category: 'Mobile Phones',
     costPrice: 5000,
     sellPrice: 6800,
-    quantityInStock: 60,
     reorderLevel: 15,
   },
   {
@@ -219,7 +202,6 @@ const productsData: Array<{
     category: 'Mobile Phones',
     costPrice: 40,
     sellPrice: 90,
-    quantityInStock: 200,
     reorderLevel: 40,
   },
   {
@@ -229,7 +211,6 @@ const productsData: Array<{
     category: 'Mobile Phones',
     costPrice: 20,
     sellPrice: 50,
-    quantityInStock: 250,
     reorderLevel: 50,
   },
   {
@@ -239,7 +220,6 @@ const productsData: Array<{
     category: 'Mobile Phones',
     costPrice: 90,
     sellPrice: 160,
-    quantityInStock: 120,
     reorderLevel: 25,
   },
   {
@@ -249,7 +229,6 @@ const productsData: Array<{
     category: 'Mobile Phones',
     costPrice: 450,
     sellPrice: 700,
-    quantityInStock: 65,
     reorderLevel: 12,
   },
 
@@ -261,7 +240,6 @@ const productsData: Array<{
     category: 'Home Appliances',
     costPrice: 12000,
     sellPrice: 15500,
-    quantityInStock: 12,
     reorderLevel: 3,
   },
   {
@@ -271,7 +249,6 @@ const productsData: Array<{
     category: 'Home Appliances',
     costPrice: 9000,
     sellPrice: 11800,
-    quantityInStock: 15,
     reorderLevel: 4,
   },
   {
@@ -281,7 +258,6 @@ const productsData: Array<{
     category: 'Home Appliances',
     costPrice: 1800,
     sellPrice: 2500,
-    quantityInStock: 25,
     reorderLevel: 6,
   },
   {
@@ -291,7 +267,6 @@ const productsData: Array<{
     category: 'Home Appliances',
     costPrice: 13500,
     sellPrice: 17000,
-    quantityInStock: 10,
     reorderLevel: 3,
   },
   {
@@ -301,7 +276,6 @@ const productsData: Array<{
     category: 'Home Appliances',
     costPrice: 220,
     sellPrice: 350,
-    quantityInStock: 90,
     reorderLevel: 20,
   },
   {
@@ -311,7 +285,6 @@ const productsData: Array<{
     category: 'Home Appliances',
     costPrice: 1600,
     sellPrice: 2200,
-    quantityInStock: 20,
     reorderLevel: 5,
   },
   {
@@ -321,7 +294,6 @@ const productsData: Array<{
     category: 'Home Appliances',
     costPrice: 450,
     sellPrice: 700,
-    quantityInStock: 55,
     reorderLevel: 12,
   },
 
@@ -333,7 +305,6 @@ const productsData: Array<{
     category: 'Furniture',
     costPrice: 2200,
     sellPrice: 3200,
-    quantityInStock: 18,
     reorderLevel: 4,
   },
   {
@@ -343,7 +314,6 @@ const productsData: Array<{
     category: 'Furniture',
     costPrice: 1800,
     sellPrice: 2600,
-    quantityInStock: 22,
     reorderLevel: 5,
   },
   {
@@ -353,7 +323,6 @@ const productsData: Array<{
     category: 'Furniture',
     costPrice: 6500,
     sellPrice: 9000,
-    quantityInStock: 8,
     reorderLevel: 2,
   },
   {
@@ -363,7 +332,6 @@ const productsData: Array<{
     category: 'Furniture',
     costPrice: 900,
     sellPrice: 1400,
-    quantityInStock: 25,
     reorderLevel: 6,
   },
   {
@@ -373,7 +341,6 @@ const productsData: Array<{
     category: 'Furniture',
     costPrice: 8000,
     sellPrice: 11500,
-    quantityInStock: 6,
     reorderLevel: 2,
   },
   {
@@ -383,7 +350,6 @@ const productsData: Array<{
     category: 'Furniture',
     costPrice: 4500,
     sellPrice: 6200,
-    quantityInStock: 10,
     reorderLevel: 3,
   },
 
@@ -395,7 +361,6 @@ const productsData: Array<{
     category: 'Groceries',
     costPrice: 180,
     sellPrice: 240,
-    quantityInStock: 200,
     reorderLevel: 40,
   },
   {
@@ -405,7 +370,6 @@ const productsData: Array<{
     category: 'Groceries',
     costPrice: 90,
     sellPrice: 130,
-    quantityInStock: 250,
     reorderLevel: 50,
   },
   {
@@ -415,7 +379,6 @@ const productsData: Array<{
     category: 'Groceries',
     costPrice: 25,
     sellPrice: 38,
-    quantityInStock: 300,
     reorderLevel: 60,
   },
   {
@@ -425,7 +388,6 @@ const productsData: Array<{
     category: 'Groceries',
     costPrice: 18,
     sellPrice: 28,
-    quantityInStock: 350,
     reorderLevel: 70,
   },
   {
@@ -435,7 +397,6 @@ const productsData: Array<{
     category: 'Groceries',
     costPrice: 60,
     sellPrice: 95,
-    quantityInStock: 150,
     reorderLevel: 30,
   },
   {
@@ -445,7 +406,6 @@ const productsData: Array<{
     category: 'Groceries',
     costPrice: 15,
     sellPrice: 24,
-    quantityInStock: 400,
     reorderLevel: 80,
   },
 
@@ -457,7 +417,6 @@ const productsData: Array<{
     category: 'Clothing',
     costPrice: 90,
     sellPrice: 160,
-    quantityInStock: 120,
     reorderLevel: 25,
   },
   {
@@ -467,7 +426,6 @@ const productsData: Array<{
     category: 'Clothing',
     costPrice: 250,
     sellPrice: 420,
-    quantityInStock: 90,
     reorderLevel: 20,
   },
   {
@@ -477,7 +435,6 @@ const productsData: Array<{
     category: 'Clothing',
     costPrice: 130,
     sellPrice: 220,
-    quantityInStock: 80,
     reorderLevel: 18,
   },
   {
@@ -487,7 +444,6 @@ const productsData: Array<{
     category: 'Clothing',
     costPrice: 900,
     sellPrice: 1400,
-    quantityInStock: 25,
     reorderLevel: 6,
   },
   {
@@ -497,7 +453,6 @@ const productsData: Array<{
     category: 'Clothing',
     costPrice: 60,
     sellPrice: 110,
-    quantityInStock: 100,
     reorderLevel: 20,
   },
 
@@ -509,7 +464,6 @@ const productsData: Array<{
     category: 'Sports & Outdoors',
     costPrice: 150,
     sellPrice: 240,
-    quantityInStock: 70,
     reorderLevel: 15,
   },
   {
@@ -519,7 +473,6 @@ const productsData: Array<{
     category: 'Sports & Outdoors',
     costPrice: 120,
     sellPrice: 200,
-    quantityInStock: 90,
     reorderLevel: 20,
   },
   {
@@ -529,7 +482,6 @@ const productsData: Array<{
     category: 'Sports & Outdoors',
     costPrice: 650,
     sellPrice: 950,
-    quantityInStock: 30,
     reorderLevel: 6,
   },
   {
@@ -539,7 +491,6 @@ const productsData: Array<{
     category: 'Sports & Outdoors',
     costPrice: 1400,
     sellPrice: 2000,
-    quantityInStock: 15,
     reorderLevel: 4,
   },
   {
@@ -549,7 +500,6 @@ const productsData: Array<{
     category: 'Sports & Outdoors',
     costPrice: 300,
     sellPrice: 480,
-    quantityInStock: 40,
     reorderLevel: 8,
   },
 
@@ -561,7 +511,6 @@ const productsData: Array<{
     category: 'Books & Stationery',
     costPrice: 60,
     sellPrice: 100,
-    quantityInStock: 200,
     reorderLevel: 40,
   },
   {
@@ -571,7 +520,6 @@ const productsData: Array<{
     category: 'Books & Stationery',
     costPrice: 25,
     sellPrice: 45,
-    quantityInStock: 300,
     reorderLevel: 60,
   },
   {
@@ -581,7 +529,6 @@ const productsData: Array<{
     category: 'Books & Stationery',
     costPrice: 90,
     sellPrice: 150,
-    quantityInStock: 60,
     reorderLevel: 12,
   },
   {
@@ -591,7 +538,6 @@ const productsData: Array<{
     category: 'Books & Stationery',
     costPrice: 20,
     sellPrice: 35,
-    quantityInStock: 250,
     reorderLevel: 50,
   },
   {
@@ -601,7 +547,6 @@ const productsData: Array<{
     category: 'Books & Stationery',
     costPrice: 35,
     sellPrice: 60,
-    quantityInStock: 150,
     reorderLevel: 30,
   },
 
@@ -613,7 +558,6 @@ const productsData: Array<{
     category: 'Beauty & Personal Care',
     costPrice: 110,
     sellPrice: 180,
-    quantityInStock: 100,
     reorderLevel: 20,
   },
   {
@@ -623,7 +567,6 @@ const productsData: Array<{
     category: 'Beauty & Personal Care',
     costPrice: 70,
     sellPrice: 120,
-    quantityInStock: 150,
     reorderLevel: 30,
   },
   {
@@ -633,7 +576,6 @@ const productsData: Array<{
     category: 'Beauty & Personal Care',
     costPrice: 400,
     sellPrice: 650,
-    quantityInStock: 45,
     reorderLevel: 10,
   },
   {
@@ -643,7 +585,6 @@ const productsData: Array<{
     category: 'Beauty & Personal Care',
     costPrice: 500,
     sellPrice: 800,
-    quantityInStock: 35,
     reorderLevel: 8,
   },
   {
@@ -653,22 +594,21 @@ const productsData: Array<{
     category: 'Beauty & Personal Care',
     costPrice: 95,
     sellPrice: 160,
-    quantityInStock: 120,
     reorderLevel: 25,
   },
 ];
 
 async function main() {
-  // const hashPassword = await bcrypt.hash('Password123', 10);
-  // const admin = await prisma.user.create({
-  //   data: {
-  //     email: 'mohamedmrslan@gmail.com',
-  //     name: 'Mohamed Shehata',
-  //     role: 'ADMIN',
-  //     passwordHash: hashPassword,
-  //   },
-  // });
-  // console.log('admin created successfully: ', admin.email);
+  const hashPassword = await bcrypt.hash('Password123', 10);
+  const admin = await prisma.user.create({
+    data: {
+      email: 'mohamedmrslan@gmail.com',
+      name: 'Mohamed Shehata',
+      role: 'ADMIN',
+      passwordHash: hashPassword,
+    },
+  });
+  console.log('admin created successfully: ', admin.email);
 
   // Create categories and keep a name -> id map
   const categoryIdByName = new Map<string, string>();
@@ -696,7 +636,6 @@ async function main() {
         categoryId,
         costPrice: p.costPrice,
         sellPrice: p.sellPrice,
-        quantityInStock: p.quantityInStock,
         reorderLevel: p.reorderLevel,
       },
     });

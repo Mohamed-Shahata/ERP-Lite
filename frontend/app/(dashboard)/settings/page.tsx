@@ -1,59 +1,166 @@
 "use client";
 
 import Link from "next/link";
+import { useAuthStore } from "@/lib/auth/auth-store";
 import { useTranslations } from "@/lib/i18n/use-translations";
+import type { Role } from "@/types/auth.types";
 
-const settingsSections = [
+function KeyIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      className="h-5 w-5"
+    >
+      <circle cx="8" cy="15" r="3.5" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M10.5 12.5 17 6M15 8l2 2M18 5l2 2"
+      />
+    </svg>
+  );
+}
+
+function UsersIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      className="h-5 w-5"
+    >
+      <circle cx="9" cy="8" r="3" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"
+      />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15.5 5.5a3 3 0 0 1 0 5.8M18 19c0-2.6-1.7-4.5-4-5"
+      />
+    </svg>
+  );
+}
+
+function ChevronIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      className="h-4 w-4 rtl:rotate-180"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="m9 6 6 6-6 6" />
+    </svg>
+  );
+}
+
+/**
+ * Central registry for every settings section. Adding a new settings page
+ * later (billing, notifications, integrations, etc.) only requires a new
+ * entry here — the grid, role-based visibility, and layout are all
+ * handled generically below.
+ */
+interface SettingsSection {
+  href: string;
+  icon: () => React.ReactNode;
+  titleKey: string;
+  descriptionKey: string;
+  /** Roles allowed to see this section. Omit to allow every authenticated role. */
+  roles?: Role[];
+}
+
+const settingsSections: SettingsSection[] = [
   {
     href: "/settings/security",
-    titleKey: "security.title",
-    descriptionKey: "security.description",
+    icon: KeyIcon,
+    titleKey: "settings.security.cardTitle",
+    descriptionKey: "settings.security.cardDescription",
   },
   {
     href: "/settings/users",
-    titleKey: "nav.users",
-    description: "Manage system users and access roles.",
+    icon: UsersIcon,
+    titleKey: "settings.users.cardTitle",
+    descriptionKey: "settings.users.cardDescription",
+    roles: ["ADMIN"],
   },
 ];
 
 export default function SettingsPage() {
+  const { user } = useAuthStore();
   const { t } = useTranslations();
 
+  const visibleSections = settingsSections.filter(
+    (section) => !section.roles || (user && section.roles.includes(user.role)),
+  );
+
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="max-w-4xl space-y-6">
+      {/* Breadcrumb */}
+      <p className="text-xs text-slate-400 dark:text-slate-500">
+        {t("common.dashboardHome")}
+        <span className="mx-1.5">/</span>
+        <span className="text-slate-600 dark:text-slate-300">
+          {t("settings.title")}
+        </span>
+      </p>
+
+      {/* Header */}
       <section>
-        <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-          {t("common.settings")}
-        </p>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-950 dark:text-white">
-          {t("common.settings")}
+        <h2 className="text-2xl font-bold text-slate-950 dark:text-white">
+          {t("settings.title")}
         </h2>
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-          Manage your account security and related settings from one place.
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          {t("settings.description")}
         </p>
       </section>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {settingsSections.map((section) => (
-          <Link
-            key={section.href}
-            href={section.href}
-            className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-500 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
-          >
-            <h3 className="text-lg font-semibold text-slate-950 dark:text-white">
-              {section.titleKey ? t(section.titleKey) : section.titleKey}
-            </h3>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              {section.descriptionKey
-                ? t(section.descriptionKey)
-                : section.description}
-            </p>
-            <span className="mt-4 inline-flex text-sm font-medium text-blue-600 dark:text-blue-400">
-              Open →
-            </span>
-          </Link>
-        ))}
+      {/* Section grid */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {visibleSections.map((section) => {
+          const Icon = section.icon;
+          return (
+            <Link
+              key={section.href}
+              href={section.href}
+              className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-blue-500 dark:border-slate-800 dark:bg-slate-900"
+            >
+              <div className="flex items-start gap-4">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+                  <Icon />
+                </span>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-slate-950 dark:text-white">
+                    {t(section.titleKey)}
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    {t(section.descriptionKey)}
+                  </p>
+                </div>
+              </div>
+              <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400">
+                {t("settings.open")}
+                <ChevronIcon />
+              </span>
+            </Link>
+          );
+        })}
       </div>
+
+      {/* Placeholder for future settings sections */}
+      <p className="text-xs text-slate-400 dark:text-slate-500">
+        {t("settings.comingSoon")}
+      </p>
     </div>
   );
 }

@@ -479,7 +479,15 @@ export default function UsersSettingsPage() {
                             ))}
                           </select>
                         ) : (
-                          <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300">
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                              user.role === "ADMIN"
+                                ? "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400"
+                                : user.role === "MANAGER"
+                                  ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400"
+                                  : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400"
+                            }`}
+                          >
                             {user.role}
                           </span>
                         )}

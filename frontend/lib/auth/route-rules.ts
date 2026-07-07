@@ -11,6 +11,9 @@ export const ROUTE_RULES: RouteRule[] = [
   // Suppliers are commercial/purchasing data — only admins and managers,
   // unlike products/categories which every authenticated role can view.
   { pattern: "/suppliers", roles: ["ADMIN", "MANAGER"] },
+  // Purchasing is admin/manager territory end-to-end (create/edit/cancel/
+  // receive/delete AND read) — employees can't even view this module.
+  { pattern: "/purchase-orders", roles: ["ADMIN", "MANAGER"] },
   { pattern: "/dashboard", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
 ];
 

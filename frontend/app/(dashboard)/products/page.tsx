@@ -138,8 +138,7 @@ function PlusIcon() {
   );
 }
 
-function StatusPill({ active }: { active: boolean }) {
-  const { t } = useTranslations();
+function StatusPill({ active, label }: { active: boolean; label: string }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
@@ -153,7 +152,7 @@ function StatusPill({ active }: { active: boolean }) {
           active ? "bg-emerald-500" : "bg-slate-400"
         }`}
       />
-      {active ? t("common.active") : t("common.inactive")}
+      {label}
     </span>
   );
 }
@@ -313,32 +312,6 @@ export default function ProductsPage() {
       setMessage(t("products.updated"));
     } catch (err) {
       setError(err instanceof Error ? err.message : t("products.updateError"));
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
-  async function handleChangeProductStatus(
-    product: Product,
-    isActive: boolean,
-  ) {
-    if (product.isActive === isActive) return;
-
-    setIsSaving(true);
-    setMessage(null);
-    setError(null);
-    try {
-      const updated = await updateProductRequest(product.id, { isActive });
-      setProducts((current) =>
-        current.map((item) => (item.id === product.id ? updated : item)),
-      );
-      setMessage(
-        t("products.statusUpdated", {
-          status: updated.isActive ? t("common.active") : t("common.inactive"),
-        }),
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("products.statusError"));
     } finally {
       setIsSaving(false);
     }
@@ -828,9 +801,14 @@ export default function ProductsPage() {
                               </option>
                             </select>
                           ) : (
-                            <div className={!canManage ? "cursor-default" : ""}>
-                              <StatusPill active={product.isActive} />
-                            </div>
+                            <StatusPill
+                              active={product.isActive}
+                              label={
+                                product.isActive
+                                  ? t("common.active")
+                                  : t("common.inactive")
+                              }
+                            />
                           )}
                         </td>
                         <td className="px-5 py-4">
