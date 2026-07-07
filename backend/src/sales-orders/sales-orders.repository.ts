@@ -187,6 +187,7 @@ export class SalesOrdersRepository {
    *   2. Flip status DRAFT -> CONFIRMED and stamp confirmedAt.
    *   3. Decrement stock for every line item.
    *   4. Write one OUT StockMovement per line item for the audit trail.
+   *   5. Create an Invoice from the sales order.
    * All in a single DB transaction so it's all-or-nothing.
    */
   async confirm(id: string, confirmedById: string): Promise<SalesOrderDetail> {
@@ -237,6 +238,20 @@ export class SalesOrdersRepository {
           },
         });
       }
+
+      // 5. Create an invoice for the confirmed sales order.
+      const invoiceNumber = `INV-${String((await tx.invoice.count()) + 1).padStart(6, '0')}`;
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 30); // 30 days payment term
+
+      await tx.invoice.create({
+        data: {
+          invoiceNumber,
+          salesOrderId: order.id,
+          amount: order.totalAmount,
+          dueDate,
+        },
+      });
 
       return tx.salesOrder.findUniqueOrThrow({
         where: { id },

@@ -139,6 +139,27 @@ function PurchaseOrdersIcon() {
   );
 }
 
+function InvoicesIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      className="h-5 w-5"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 4.5h16a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-13a1 1 0 0 1 1-1Z"
+      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16" />
+      <path strokeLinecap="round" d="M7 11h6M7 14h4M7 17h8" />
+    </svg>
+  );
+}
+
 function MenuIcon() {
   return (
     <svg
@@ -258,6 +279,12 @@ const navItems: Array<{
     href: "/sales-orders",
     labelKey: "nav.salesOrders",
     icon: PurchaseOrdersIcon,
+  },
+  // Invoices — available to all authenticated users.
+  {
+    href: "/invoices",
+    labelKey: "nav.invoices",
+    icon: InvoicesIcon,
   },
   {
     href: "/settings",

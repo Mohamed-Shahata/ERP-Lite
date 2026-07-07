@@ -11,6 +11,8 @@ import { SuppliersModule } from './suppliers/suppliers.module';
 import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
 import { CustomersModule } from './customers/customers.module';
 import { SalesOrdersModule } from './sales-orders/sales-orders.module';
+import { InvoicesModule } from './invoices/invoices.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { SalesOrdersModule } from './sales-orders/sales-orders.module';
     PurchaseOrdersModule,
     CustomersModule,
     SalesOrdersModule,
+    InvoicesModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

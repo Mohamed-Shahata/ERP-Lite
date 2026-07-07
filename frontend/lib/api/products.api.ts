@@ -34,6 +34,7 @@ export async function listProductsRequest(params: PaginationParams = {}) {
     "/products",
     { params },
   );
+  console.log(data);
   return data.data;
 }
 
