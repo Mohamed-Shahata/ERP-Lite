@@ -38,11 +38,12 @@ export const en = {
     products: "Products",
     categories: "Categories",
     suppliers: "Suppliers",
+    settings: "Settings",
     security: "Security",
     users: "Users",
   },
   shell: {
-    brand: "ERP Lite",
+    brand: "ERP SOLUTIONS",
     workspace: "Operations workspace",
     controlCenter: "Business control center",
     logout: "Log out",
@@ -96,6 +97,7 @@ export const en = {
     sending: "Sending...",
     sendLink: "Send reset link",
     successFallback: "If that email exists, a reset link has been sent to it.",
+    backToLogin: "Back to sign in",
   },
   resetPassword: {
     title: "Reset your password",
@@ -193,6 +195,7 @@ export const en = {
     categoryName: "Category name",
     products: "Products",
     addCategory: "Add category",
+    searchPlaceholder: "Search categories...",
     created: "Category created successfully.",
     updated: "Category updated successfully.",
     deleted: "Category deleted.",
@@ -216,6 +219,7 @@ export const en = {
     phone: "Phone",
     address: "Address",
     addSupplier: "Add supplier",
+    searchPlaceholder: "Search suppliers...",
     created: "Supplier created successfully.",
     updated: "Supplier updated successfully.",
     deleted: "Supplier deleted.",
@@ -254,7 +258,7 @@ export const en = {
     statusError: "Could not update status.",
   },
   security: {
-    title: "Security",
+    title: "Change password",
     description:
       "Update your password. Session tokens stay in httpOnly cookies and are refreshed by the backend.",
   },

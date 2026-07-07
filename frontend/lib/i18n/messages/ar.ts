@@ -40,11 +40,12 @@ export const ar: Messages = {
     products: "المنتجات",
     categories: "التصنيفات",
     suppliers: "الموردون",
+    settings: "الإعدادات",
     security: "الأمان",
     users: "المستخدمون",
   },
   shell: {
-    brand: "ERP Lite",
+    brand: "ERP SOLUTIONS",
     workspace: "مساحة العمليات",
     controlCenter: "مركز التحكم",
     logout: "تسجيل الخروج",
@@ -97,6 +98,7 @@ export const ar: Messages = {
     sending: "جاري الإرسال...",
     sendLink: "إرسال رابط إعادة التعيين",
     successFallback: "إذا كان البريد موجوداً، تم إرسال رابط إعادة التعيين.",
+    backToLogin: "العودة إلى تسجيل الدخول",
   },
   resetPassword: {
     title: "إعادة تعيين كلمة المرور",
@@ -193,6 +195,7 @@ export const ar: Messages = {
     categoryName: "اسم التصنيف",
     products: "المنتجات",
     addCategory: "إضافة تصنيف",
+    searchPlaceholder: "ابحث عن تصنيف...",
     created: "تم إنشاء التصنيف بنجاح.",
     updated: "تم تحديث التصنيف بنجاح.",
     deleted: "تم حذف التصنيف.",
@@ -216,6 +219,7 @@ export const ar: Messages = {
     phone: "الهاتف",
     address: "العنوان",
     addSupplier: "إضافة مورد",
+    searchPlaceholder: "ابحث عن مورد...",
     created: "تم إنشاء المورد بنجاح.",
     updated: "تم تحديث المورد بنجاح.",
     deleted: "تم حذف المورد.",
@@ -254,7 +258,7 @@ export const ar: Messages = {
     statusError: "تعذر تحديث الحالة.",
   },
   security: {
-    title: "الأمان",
+    title: "تغيير كلمة المرور",
     description:
       "حدّث كلمة المرور. رموز الجلسة في كوكيز httpOnly ويتم تجديدها من الخادم.",
   },

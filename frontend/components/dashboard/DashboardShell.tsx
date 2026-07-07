@@ -10,6 +10,7 @@ import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { Role } from "@/types/auth.types";
+import Image from "next/image";
 
 const navItems: Array<{
   href: string;
@@ -28,13 +29,7 @@ const navItems: Array<{
     icon: "S",
     roles: ["ADMIN", "MANAGER"],
   },
-  { href: "/settings/security", labelKey: "nav.security", icon: "S" },
-  {
-    href: "/settings/users",
-    labelKey: "nav.users",
-    icon: "U",
-    roles: ["ADMIN"],
-  },
+  { href: "/settings", labelKey: "nav.settings", icon: "S" },
 ];
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -71,9 +66,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
       <aside className="fixed inset-y-0 inset-s-0 hidden w-72 border-e border-slate-200 bg-white px-5 py-6 dark:border-slate-800 dark:bg-slate-900 lg:block">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
-            EL
-          </div>
+          <Image
+            src="/erp-system-logo.png"
+            alt="ERP Lite Logo"
+            width={40}
+            height={40}
+          />
           <div>
             <p className="text-sm font-semibold text-slate-950 dark:text-white">
               {t("shell.brand")}

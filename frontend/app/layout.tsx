@@ -23,7 +23,7 @@ const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: "ERP Lite",
+  title: "ERP SOLUTIONS",
   description: "A focused ERP workspace for daily operations.",
 };
 

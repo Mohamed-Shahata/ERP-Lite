@@ -138,7 +138,7 @@ export function LoginForm() {
         <input
           type="email"
           {...register("email")}
-          className="h-11 w-full rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+          className="h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
           placeholder={t("login.emailPlaceholder")}
         />
         {errors.email && (
@@ -164,7 +164,7 @@ export function LoginForm() {
           <input
             type={showPassword ? "text" : "password"}
             {...register("password")}
-            className="h-11 w-full rounded-md border border-slate-300 px-3 pe-11 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+            className="h-11 w-full rounded-xl border border-slate-300 px-3 pe-11 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
             placeholder={t("login.passwordPlaceholder")}
           />
           <button
@@ -199,7 +199,7 @@ export function LoginForm() {
       </label>
 
       {serverError && (
-        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400">
+        <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400">
           {serverError}
         </p>
       )}
@@ -207,7 +207,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-blue-700 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-700 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isSubmitting ? t("login.signingIn") : t("login.signIn")}
         {!isSubmitting && <ArrowIcon mirrored={dir === "rtl"} />}

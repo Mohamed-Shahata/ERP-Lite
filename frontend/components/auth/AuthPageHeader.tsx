@@ -18,7 +18,7 @@ export function AuthPageHeader({
   return (
     <>
       {eyebrowKey ? (
-        <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+        <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
           {t(eyebrowKey)}
         </p>
       ) : null}

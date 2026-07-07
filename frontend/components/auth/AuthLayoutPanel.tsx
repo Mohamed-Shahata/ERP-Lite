@@ -3,6 +3,7 @@
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useTranslations } from "@/lib/i18n/use-translations";
+import Image from "next/image";
 
 function HelpIcon() {
   return (
@@ -95,9 +96,12 @@ export function AuthLayoutPanel({ children }: { children: React.ReactNode }) {
       {/* Top bar */}
       <header className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
-            EL
-          </div>
+          <Image
+            src="/erp-system-logo.png"
+            alt="ERP Lite Logo"
+            width={40}
+            height={40}
+          />
           <span className="text-base font-semibold text-slate-950 dark:text-white">
             {t("shell.brand")}
           </span>

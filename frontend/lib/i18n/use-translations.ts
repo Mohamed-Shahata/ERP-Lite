@@ -7,7 +7,7 @@ import {
   getLocaleDirection,
   useLocaleStore,
 } from "./locale-store";
-import type { Locale, Messages } from "./types";
+import type { Messages } from "./types";
 
 type Params = Record<string, string | number>;
 
