@@ -1,14 +1,17 @@
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import cookieParser from 'cookie-parser';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.use(cookieParser());
+  app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads/' });
 
   const frontendUrl =
     process.env.FRONTEND_URL?.trim() || 'http://localhost:3000';

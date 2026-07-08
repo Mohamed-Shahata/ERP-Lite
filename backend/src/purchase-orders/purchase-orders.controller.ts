@@ -20,11 +20,11 @@ import { PurchaseOrderQueryDto } from './dto/purchase-order-query.dto';
 import { UpdatePurchaseOrderDto } from './dto/update-purchase-order.dto';
 import { PurchaseOrdersService } from './purchase-orders.service';
 
-// Purchasing is admin/manager territory end-to-end: employees can neither
-// view nor touch purchase orders (unlike products/categories/suppliers).
+// Purchasing decisions (create/edit/cancel/delete/receive) are admin/manager
+// territory, but any authenticated user — including employees — can view
+// purchase orders.
 @Controller('purchase-orders')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.ADMIN, Role.MANAGER)
 export class PurchaseOrdersController {
   constructor(private readonly purchaseOrdersService: PurchaseOrdersService) {}
 
@@ -39,6 +39,7 @@ export class PurchaseOrdersController {
   }
 
   @Post()
+  @Roles(Role.ADMIN, Role.MANAGER)
   create(
     @Body() dto: CreatePurchaseOrderDto,
     @CurrentUser() user: CurrentUserPayload,
@@ -48,18 +49,21 @@ export class PurchaseOrdersController {
 
   // Only while status is still PENDING (enforced in the service).
   @Patch(':id')
+  @Roles(Role.ADMIN, Role.MANAGER)
   update(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderDto) {
     return this.purchaseOrdersService.update(id, dto);
   }
 
   // Only while status is still PENDING (enforced in the service).
   @Patch(':id/cancel')
+  @Roles(Role.ADMIN, Role.MANAGER)
   cancel(@Param('id') id: string) {
     return this.purchaseOrdersService.cancel(id);
   }
 
   // Only while status is still PENDING (enforced in the service).
   @Delete(':id')
+  @Roles(Role.ADMIN, Role.MANAGER)
   remove(@Param('id') id: string) {
     return this.purchaseOrdersService.remove(id);
   }
@@ -67,6 +71,7 @@ export class PurchaseOrdersController {
   // The one business operation that actually moves inventory:
   // status -> RECEIVED, stock incremented, StockMovement recorded.
   @Post(':id/receive')
+  @Roles(Role.ADMIN, Role.MANAGER)
   receive(@Param('id') id: string, @CurrentUser() user: CurrentUserPayload) {
     return this.purchaseOrdersService.receive(id, user.id);
   }

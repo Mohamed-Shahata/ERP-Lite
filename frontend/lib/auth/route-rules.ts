@@ -4,23 +4,28 @@ export interface RouteRule {
 }
 
 export const ROUTE_RULES: RouteRule[] = [
-  { pattern: "/settings/users", roles: ["ADMIN"] },
+  { pattern: "/users", roles: ["ADMIN"] },
+  // Company name/logo/currency/invoice details — admins only.
+  { pattern: "/settings/company", roles: ["ADMIN"] },
   { pattern: "/settings", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
   { pattern: "/products", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
   { pattern: "/categories", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
   { pattern: "/customers", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
-  // Suppliers are commercial/purchasing data — only admins and managers,
-  // unlike products/categories which every authenticated role can view.
-  { pattern: "/suppliers", roles: ["ADMIN", "MANAGER"] },
-  // Purchasing is admin/manager territory end-to-end (create/edit/cancel/
-  // receive/delete AND read) — employees can't even view this module.
-  { pattern: "/purchase-orders", roles: ["ADMIN", "MANAGER"] },
+  // View-only for employees; create/edit/delete stays admin/manager (enforced
+  // by canManage in the page and @Roles on the backend mutation endpoints).
+  { pattern: "/suppliers", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
+  { pattern: "/purchase-orders", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
+  // Every role can view reports; printing/exporting is restricted inside
+  // the ExportButtons component itself (hidden for EMPLOYEE).
+  { pattern: "/reports", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
+  // Inventory audit trail — same access level as reports/purchase-orders.
+  { pattern: "/stock-movements", roles: ["ADMIN", "MANAGER"] },
   { pattern: "/dashboard", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
 ];
 
 export function findMatchingRule(pathname: string): RouteRule | undefined {
-  // Longest pattern first, so '/settings/users' is checked before the
-  // broader '/settings' rule.
+  // Longest pattern first, so more specific rules are checked before
+  // broader prefix rules.
   return [...ROUTE_RULES]
     .sort((a, b) => b.pattern.length - a.pattern.length)
     .find((rule) => pathname.startsWith(rule.pattern));

@@ -1,22 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { listCustomersRequest } from "@/lib/api/customers.api";
 import { listInvoicesRequest } from "@/lib/api/invoices.api";
 import { listProductsRequest } from "@/lib/api/products.api";
 import { listPurchaseOrdersRequest } from "@/lib/api/purchase-orders.api";
 import { listSalesOrdersRequest } from "@/lib/api/sales-orders.api";
+import { listStockMovementsRequest } from "@/lib/api/stock-movements.api";
 import { DashboardAlertBanners } from "@/components/dashboard/DashboardAlertBanners";
 import { DashboardRecentTables } from "@/components/dashboard/DashboardRecentTables";
+import { DashboardStockMovements } from "@/components/dashboard/DashboardStockMovements";
 import { DashboardStatCards } from "@/components/dashboard/DashboardStatCards";
 import { formatDashboardCurrency } from "@/components/dashboard/format-dashboard";
 import { useAuthStore } from "@/lib/auth/auth-store";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import type { InvoiceListItem } from "@/types/invoice.types";
-import type { Product } from "@/types/product.types";
-import type { PurchaseOrderListItem } from "@/types/purchase-order.types";
-import type { SalesOrderListItem } from "@/types/sales-order.types";
 
 function PlusIcon() {
   return (
@@ -42,91 +42,64 @@ export default function DashboardPage() {
   const { t, dateLocale } = useTranslations();
   const user = useAuthStore((state) => state.user);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [salesOrders, setSalesOrders] = useState<SalesOrderListItem[]>([]);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderListItem[]>(
-    [],
-  );
-  const [totalProducts, setTotalProducts] = useState(0);
-  const [totalCustomers, setTotalCustomers] = useState(0);
-  const [totalSales, setTotalSales] = useState(0);
-  const [totalPurchases, setTotalPurchases] = useState(0);
-  const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
-  const [overdueInvoices, setOverdueInvoices] = useState<InvoiceListItem[]>([]);
+  const canViewStockMovements =
+    user?.role === "ADMIN" || user?.role === "MANAGER";
 
-  useEffect(() => {
-    let cancelled = false;
+  const { data, isLoading } = useQuery({
+    queryKey: ["dashboard", canViewStockMovements],
+    queryFn: async () => {
+      const [
+        salesResult,
+        purchaseResult,
+        productsResult,
+        customersResult,
+        invoicesResult,
+        allSalesResult,
+        allPurchaseResult,
+        movementsResult,
+      ] = await Promise.all([
+        listSalesOrdersRequest({ page: 1, limit: 4 }),
+        listPurchaseOrdersRequest({ page: 1, limit: 4 }),
+        listProductsRequest({ page: 1, limit: 100 }),
+        listCustomersRequest({ page: 1, limit: 1 }),
+        listInvoicesRequest({ page: 1, limit: 100 }),
+        listSalesOrdersRequest({ page: 1, limit: 100 }),
+        listPurchaseOrdersRequest({ page: 1, limit: 100 }),
+        canViewStockMovements
+          ? listStockMovementsRequest({ page: 1, limit: 5 })
+          : Promise.resolve(null),
+      ]);
 
-    async function loadDashboard() {
-      setIsLoading(true);
-      try {
-        const [
-          salesResult,
-          purchaseResult,
-          productsResult,
-          customersResult,
-          invoicesResult,
-          allSalesResult,
-          allPurchaseResult,
-        ] = await Promise.all([
-          listSalesOrdersRequest({ page: 1, limit: 4 }),
-          listPurchaseOrdersRequest({ page: 1, limit: 4 }),
-          listProductsRequest({ page: 1, limit: 100 }),
-          listCustomersRequest({ page: 1, limit: 1 }),
-          listInvoicesRequest({ page: 1, limit: 100 }),
-          listSalesOrdersRequest({ page: 1, limit: 100 }),
-          listPurchaseOrdersRequest({ page: 1, limit: 100 }),
-        ]);
+      return {
+        salesOrders: salesResult.data,
+        purchaseOrders: purchaseResult.data,
+        totalProducts: productsResult.meta.total,
+        totalCustomers: customersResult.meta.total,
+        overdueInvoices: invoicesResult.data.filter(isOverdueInvoice),
+        totalSales: allSalesResult.data
+          .filter((order) => order.status === "CONFIRMED")
+          .reduce((sum, order) => sum + Number(order.totalAmount), 0),
+        totalPurchases: allPurchaseResult.data
+          .filter((order) => order.status === "RECEIVED")
+          .reduce((sum, order) => sum + Number(order.totalAmount), 0),
+        lowStockProducts: productsResult.data.filter(
+          (product) =>
+            product.isActive && product.quantityInStock <= product.reorderLevel,
+        ),
+        recentStockMovements: movementsResult?.data ?? [],
+      };
+    },
+  });
 
-        if (cancelled) return;
-
-        setSalesOrders(salesResult.data);
-        setPurchaseOrders(purchaseResult.data);
-        setTotalProducts(productsResult.meta.total);
-        setTotalCustomers(customersResult.meta.total);
-        setOverdueInvoices(invoicesResult.data.filter(isOverdueInvoice));
-        setTotalSales(
-          allSalesResult.data
-            .filter((order) => order.status === "CONFIRMED")
-            .reduce((sum, order) => sum + Number(order.totalAmount), 0),
-        );
-        setTotalPurchases(
-          allPurchaseResult.data
-            .filter((order) => order.status === "RECEIVED")
-            .reduce((sum, order) => sum + Number(order.totalAmount), 0),
-        );
-        setLowStockProducts(
-          productsResult.data.filter(
-            (product) =>
-              product.isActive &&
-              product.quantityInStock <= product.reorderLevel,
-          ),
-        );
-      } catch {
-        if (!cancelled) {
-          setSalesOrders([]);
-          setPurchaseOrders([]);
-          setTotalProducts(0);
-          setTotalCustomers(0);
-          setOverdueInvoices([]);
-          setTotalSales(0);
-          setTotalPurchases(0);
-          setLowStockProducts([]);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    void loadDashboard();
-    // console.log(listSalesOrdersRequest({ page: 1, limit: 4 }));
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const salesOrders = data?.salesOrders ?? [];
+  const purchaseOrders = data?.purchaseOrders ?? [];
+  const totalProducts = data?.totalProducts ?? 0;
+  const totalCustomers = data?.totalCustomers ?? 0;
+  const totalSales = data?.totalSales ?? 0;
+  const totalPurchases = data?.totalPurchases ?? 0;
+  const lowStockProducts = data?.lowStockProducts ?? [];
+  const overdueInvoices = data?.overdueInvoices ?? [];
+  const recentStockMovements = data?.recentStockMovements ?? [];
 
   const overdueAmount = useMemo(
     () =>
@@ -227,6 +200,28 @@ export default function DashboardPage() {
           CANCELLED: t("dashboard.purchaseDisplayStatus.CANCELLED"),
         }}
       />
+
+      {canViewStockMovements && (
+        <DashboardStockMovements
+          movements={recentStockMovements}
+          locale={dateLocale}
+          isLoading={isLoading}
+          labels={{
+            title: t("dashboard.stockMovements.title"),
+            viewAll: t("dashboard.stockMovements.viewAll"),
+            product: t("dashboard.stockMovements.product"),
+            type: t("dashboard.stockMovements.type"),
+            quantity: t("dashboard.stockMovements.quantity"),
+            date: t("dashboard.stockMovements.date"),
+            empty: t("dashboard.stockMovements.empty"),
+          }}
+          typeLabels={{
+            IN: t("stockMovements.type.IN"),
+            OUT: t("stockMovements.type.OUT"),
+            ADJUSTMENT: t("stockMovements.type.ADJUSTMENT"),
+          }}
+        />
+      )}
     </div>
   );
 }

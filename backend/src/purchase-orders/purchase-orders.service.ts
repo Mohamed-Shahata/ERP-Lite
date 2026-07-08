@@ -16,6 +16,8 @@ import {
   PurchaseOrderListItem,
   PurchaseOrdersRepository,
 } from './purchase-orders.repository';
+import { CacheService } from '../common/cache/cache.service';
+import { CACHE_PREFIX } from '../common/cache/cache-keys.constants';
 
 @Injectable()
 export class PurchaseOrdersService {
@@ -23,6 +25,7 @@ export class PurchaseOrdersService {
     private readonly purchaseOrdersRepository: PurchaseOrdersRepository,
     private readonly suppliersService: SuppliersService,
     private readonly productsService: ProductsService,
+    private readonly cache: CacheService,
   ) {}
 
   async findAllPaginated(
@@ -107,7 +110,13 @@ export class PurchaseOrdersService {
       );
     }
 
-    return this.purchaseOrdersRepository.receive(id, receivedById);
+    const received = await this.purchaseOrdersRepository.receive(
+      id,
+      receivedById,
+    );
+    this.cache.invalidatePrefix(CACHE_PREFIX.DASHBOARD_OVERVIEW);
+    this.cache.invalidate(CACHE_PREFIX.REPORTS_INVENTORY);
+    return received;
   }
 
   private ensureIsPending(

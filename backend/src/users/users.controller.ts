@@ -32,17 +32,22 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  // Only ADMIN can create, edit, or activate/deactivate users — a manager
+  // may view the users list but not manage it.
   @Post()
+  @Roles(Role.ADMIN)
   create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
   }
 
   @Patch(':id')
+  @Roles(Role.ADMIN)
   update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
     return this.usersService.update(id, dto);
   }
 
   @Patch(':id/active')
+  @Roles(Role.ADMIN)
   setActive(@Param('id') id: string, @Body() dto: SetUserActiveDto) {
     return this.usersService.setActive(id, dto.isActive);
   }

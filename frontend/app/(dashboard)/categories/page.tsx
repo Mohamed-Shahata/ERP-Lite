@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createCategoryRequest,
   deleteCategoryRequest,
@@ -110,9 +111,6 @@ export default function CategoriesPage() {
   const { t } = useTranslations();
   const canManage = user?.role === "ADMIN" || user?.role === "MANAGER";
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [totalCategories, setTotalCategories] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -133,6 +131,26 @@ export default function CategoriesPage() {
   const [categoriesPage, setCategoriesPage] = useState(1);
   const [categoriesPageSize, setCategoriesPageSize] = useState(10);
 
+  const queryClient = useQueryClient();
+  const categoriesQueryKey = ["categories", categoriesPage, categoriesPageSize];
+
+  const {
+    data: categoriesResult,
+    isLoading,
+    error: loadError,
+  } = useQuery({
+    queryKey: categoriesQueryKey,
+    queryFn: () =>
+      listCategoriesRequest({
+        page: categoriesPage,
+        limit: categoriesPageSize,
+      }),
+  });
+
+  const categories = categoriesResult?.data ?? [];
+  const totalCategories = categoriesResult?.meta.total ?? 0;
+  const displayError = error ?? (loadError ? t("categories.loadError") : null);
+
   const visibleCategories = useMemo(() => {
     if (!searchTerm.trim()) return categories;
     const term = searchTerm.trim().toLowerCase();
@@ -143,28 +161,9 @@ export default function CategoriesPage() {
     );
   }, [categories, searchTerm]);
 
-  async function loadCategories() {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await listCategoriesRequest({
-        page: categoriesPage,
-        limit: categoriesPageSize,
-      });
-      setCategories(result.data);
-      setTotalCategories(result.meta.total);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("categories.loadError"));
-    } finally {
-      setIsLoading(false);
-    }
+  function invalidateCategories() {
+    return queryClient.invalidateQueries({ queryKey: ["categories"] });
   }
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadCategories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoriesPage, categoriesPageSize]);
 
   async function handleCreateCategory(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -178,7 +177,7 @@ export default function CategoriesPage() {
       });
       setCategoryForm({ name: "", description: "" });
       setMessage(t("categories.created"));
-      await loadCategories();
+      await invalidateCategories();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : t("categories.createError"),
@@ -203,15 +202,11 @@ export default function CategoriesPage() {
     setMessage(null);
     setError(null);
     try {
-      const updated = await updateCategoryRequest(categoryId, {
+      await updateCategoryRequest(categoryId, {
         name: categoryEditForm.name.trim(),
         description: categoryEditForm.description.trim() || undefined,
       });
-      setCategories((current) =>
-        current.map((category) =>
-          category.id === categoryId ? { ...category, ...updated } : category,
-        ),
-      );
+      await invalidateCategories();
       setEditingCategoryId(null);
       setMessage(t("categories.updated"));
     } catch (err) {
@@ -235,7 +230,7 @@ export default function CategoriesPage() {
     try {
       await deleteCategoryRequest(category.id);
       setMessage(t("categories.deleted"));
-      await loadCategories();
+      await invalidateCategories();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : t("categories.deleteError"),
@@ -274,7 +269,7 @@ export default function CategoriesPage() {
             </p>
           </div>
           <button
-            onClick={() => void loadCategories()}
+            onClick={() => void invalidateCategories()}
             className="flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700"
             type="button"
           >
@@ -284,15 +279,15 @@ export default function CategoriesPage() {
         </div>
       </section>
 
-      {(message || error) && (
+      {(message || displayError) && (
         <div
           className={`rounded-xl border px-4 py-3 text-sm ${
-            error
+            displayError
               ? "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400"
               : "border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400"
           }`}
         >
-          {error ?? message}
+          {displayError ?? message}
         </div>
       )}
 

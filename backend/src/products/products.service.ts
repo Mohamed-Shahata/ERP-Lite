@@ -13,12 +13,15 @@ import {
   ProductWithCategory,
   UpdateProductData,
 } from './products.repository';
+import { CacheService } from '../common/cache/cache.service';
+import { CACHE_PREFIX, CACHE_TTL } from '../common/cache/cache-keys.constants';
 
 @Injectable()
 export class ProductsService {
   constructor(
     private readonly productsRepository: ProductsRepository,
     private readonly categoriesService: CategoriesService,
+    private readonly cache: CacheService,
   ) {}
 
   async findAll(): Promise<ProductWithCategory[]> {
@@ -28,7 +31,10 @@ export class ProductsService {
   async findAllPaginated(
     query: PaginationQueryDto,
   ): Promise<PaginatedResult<ProductWithCategory>> {
-    return this.productsRepository.findAllPaginated(query);
+    const cacheKey = `${CACHE_PREFIX.PRODUCTS_LIST}${JSON.stringify(query)}`;
+    return this.cache.getOrSet(cacheKey, CACHE_TTL.LIST, () =>
+      this.productsRepository.findAllPaginated(query),
+    );
   }
 
   async findOne(id: string): Promise<ProductWithCategory> {
@@ -46,7 +52,7 @@ export class ProductsService {
     // Throws NotFoundException if the category doesn't exist.
     await this.categoriesService.findOne(dto.categoryId);
 
-    return this.productsRepository.create({
+    const product = await this.productsRepository.create({
       sku: dto.sku.trim(),
       name: dto.name.trim(),
       description: dto.description?.trim(),
@@ -56,6 +62,8 @@ export class ProductsService {
       reorderLevel: dto.reorderLevel,
       isActive: dto.isActive ?? true,
     });
+    this.invalidateProductCaches();
+    return product;
   }
 
   async update(
@@ -87,13 +95,23 @@ export class ProductsService {
       ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
     };
 
-    return this.productsRepository.update(id, data);
+    const updated = await this.productsRepository.update(id, data);
+    this.invalidateProductCaches();
+    return updated;
   }
 
   async remove(id: string): Promise<ProductWithCategory> {
     const product = await this.findOne(id);
     await this.productsRepository.delete(id);
+    this.invalidateProductCaches();
     return product;
+  }
+
+  /** A product write can also change stock/reorder data reports rely on. */
+  private invalidateProductCaches(): void {
+    this.cache.invalidatePrefix(CACHE_PREFIX.PRODUCTS_LIST);
+    this.cache.invalidate(CACHE_PREFIX.REPORTS_INVENTORY);
+    this.cache.invalidatePrefix(CACHE_PREFIX.DASHBOARD_OVERVIEW);
   }
 
   private async ensureSkuAvailable(

@@ -40,5 +40,7 @@ export const config = {
     "/categories/:path*",
     "/suppliers/:path*",
     "/purchase-orders/:path*",
+    "/reports/:path*",
+    "/stock-movements/:path*",
   ],
 };

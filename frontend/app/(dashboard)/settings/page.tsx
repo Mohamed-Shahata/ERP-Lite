@@ -25,7 +25,7 @@ function KeyIcon() {
   );
 }
 
-function UsersIcon() {
+function BuildingIcon() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -35,16 +35,10 @@ function UsersIcon() {
       strokeWidth={1.75}
       className="h-5 w-5"
     >
-      <circle cx="9" cy="8" r="3" />
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M15.5 5.5a3 3 0 0 1 0 5.8M18 19c0-2.6-1.7-4.5-4-5"
+        d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16M15 21h5v-9a1 1 0 0 0-1-1h-4M8 8h.01M12 8h.01M8 12h.01M12 12h.01M8 16h.01M12 16h.01"
       />
     </svg>
   );
@@ -87,11 +81,12 @@ const settingsSections: SettingsSection[] = [
     titleKey: "settings.security.cardTitle",
     descriptionKey: "settings.security.cardDescription",
   },
+  // Company name/logo/currency/invoice details — admins only.
   {
-    href: "/settings/users",
-    icon: UsersIcon,
-    titleKey: "settings.users.cardTitle",
-    descriptionKey: "settings.users.cardDescription",
+    href: "/settings/company",
+    icon: BuildingIcon,
+    titleKey: "settings.companyCard.cardTitle",
+    descriptionKey: "settings.companyCard.cardDescription",
     roles: ["ADMIN"],
   },
 ];

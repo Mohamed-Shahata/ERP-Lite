@@ -19,12 +19,20 @@
   --font-mono: "Cascadia Code", Consolas, monospace;
 }
 
+html,
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
+body {
+  overflow-x: hidden;
+}
+
+/* RTL helpers */
 [dir="rtl"] .text-left {
   text-align: right;
 }
@@ -33,6 +41,7 @@ body {
   text-align: left;
 }
 
+/* Smooth transitions */
 button,
 a,
 input {
@@ -41,4 +50,18 @@ input {
     background-color 160ms ease,
     border-color 160ms ease,
     box-shadow 160ms ease;
+}
+
+/* Hide scrollbars everywhere while keeping scrolling enabled */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }

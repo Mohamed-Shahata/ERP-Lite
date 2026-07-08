@@ -16,6 +16,8 @@ import {
   SalesOrderListItem,
   SalesOrdersRepository,
 } from './sales-orders.repository';
+import { CacheService } from '../common/cache/cache.service';
+import { CACHE_PREFIX } from '../common/cache/cache-keys.constants';
 
 @Injectable()
 export class SalesOrdersService {
@@ -23,6 +25,7 @@ export class SalesOrdersService {
     private readonly salesOrdersRepository: SalesOrdersRepository,
     private readonly customersService: CustomersService,
     private readonly productsService: ProductsService,
+    private readonly cache: CacheService,
   ) {}
 
   async findAllPaginated(
@@ -102,7 +105,14 @@ export class SalesOrdersService {
       throw new ConflictException('Only draft sales orders can be confirmed');
     }
 
-    return this.salesOrdersRepository.confirm(id, confirmedById);
+    const confirmed = await this.salesOrdersRepository.confirm(
+      id,
+      confirmedById,
+    );
+    this.cache.invalidatePrefix(CACHE_PREFIX.DASHBOARD_OVERVIEW);
+    this.cache.invalidate(CACHE_PREFIX.REPORTS_SALES);
+    this.cache.invalidate(CACHE_PREFIX.REPORTS_INVENTORY);
+    return confirmed;
   }
 
   private ensureIsDraft(

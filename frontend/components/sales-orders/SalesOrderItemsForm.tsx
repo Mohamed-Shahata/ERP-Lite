@@ -3,6 +3,7 @@
 import type { Product } from "@/types/product.types";
 import type { SalesOrderItemPayload } from "@/lib/api/sales-orders.api";
 import { useTranslations } from "@/lib/i18n/use-translations";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 
 interface SalesOrderItemsFormProps {
   products: Product[];
@@ -82,22 +83,19 @@ export function SalesOrderItemsForm({
             {items.map((item, index) => (
               <tr key={index}>
                 <td className="px-4 py-2">
-                  <select
-                    className={inputClass}
-                    onChange={(event) =>
-                      handleProductChange(index, event.target.value)
-                    }
+                  <SearchableSelect
+                    className="min-w-48"
+                    options={products.map((product) => ({
+                      id: product.id,
+                      label: product.name,
+                      sublabel: product.sku,
+                    }))}
                     value={item.productId}
-                  >
-                    <option value="" disabled>
-                      {t("purchaseOrders.selectProduct")}
-                    </option>
-                    {products.map((product) => (
-                      <option key={product.id} value={product.id}>
-                        {product.name} ({product.sku})
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(productId) =>
+                      handleProductChange(index, productId)
+                    }
+                    placeholder={t("purchaseOrders.selectProduct")}
+                  />
                 </td>
                 <td className="px-4 py-2">
                   <input

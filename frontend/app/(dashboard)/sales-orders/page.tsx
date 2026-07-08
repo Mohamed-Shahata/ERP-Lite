@@ -12,6 +12,7 @@ import { listCustomersRequest } from "@/lib/api/customers.api";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import { Pagination } from "@/components/ui/Pagination";
 import { SalesOrderItemsForm } from "@/components/sales-orders/SalesOrderItemsForm";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { SalesOrderStatusBadge } from "@/components/sales-orders/SalesOrderStatusBadge";
 import type { Product } from "@/types/product.types";
 import type { Customer } from "@/types/customer.types";
@@ -179,22 +180,14 @@ export default function SalesOrdersPage() {
               >
                 {t("salesOrders.customer")}
               </label>
-              <select
+              <SearchableSelect
                 id="so-customer"
                 required
-                className="h-10 w-full rounded-xl border border-slate-300 dark:border-slate-700 px-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:bg-slate-900 dark:text-white"
-                onChange={(e) => setCustomerId(e.target.value)}
+                options={customers.map((c) => ({ id: c.id, label: c.name }))}
                 value={customerId}
-              >
-                <option value="" disabled>
-                  {t("salesOrders.selectCustomer")}
-                </option>
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setCustomerId}
+                placeholder={t("salesOrders.selectCustomer")}
+              />
             </div>
 
             <SalesOrderItemsForm

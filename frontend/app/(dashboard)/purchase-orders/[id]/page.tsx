@@ -12,6 +12,7 @@ import {
   type PurchaseOrderItemPayload,
 } from "@/lib/api/purchase-orders.api";
 import { listSuppliersRequest } from "@/lib/api/suppliers.api";
+import { useAuthStore } from "@/lib/auth/auth-store";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { PurchaseOrderItemsForm } from "@/components/purchase-orders/PurchaseOrderItemsForm";
@@ -24,6 +25,10 @@ export default function PurchaseOrderDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { t, dateLocale } = useTranslations();
+  const { user } = useAuthStore();
+  // Purchasing actions (edit/receive/cancel/delete) are admin/manager only;
+  // employees can view the order but not act on it.
+  const canManage = user?.role === "ADMIN" || user?.role === "MANAGER";
 
   const [order, setOrder] = useState<PurchaseOrderDetail | null>(null);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -313,7 +318,7 @@ export default function PurchaseOrderDetailPage() {
         </p>
       </section>
 
-      {isPending && (
+      {isPending && canManage && (
         <section className="flex flex-wrap gap-3">
           {isEditing ? (
             <>

@@ -209,6 +209,31 @@ function CollapseIcon({ collapsed }: { collapsed: boolean }) {
   );
 }
 
+function UsersIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      className="h-5 w-5"
+    >
+      <circle cx="9" cy="8" r="3" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"
+      />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15.5 5.5a3 3 0 0 1 0 5.8M18 19c0-2.6-1.7-4.5-4-5"
+      />
+    </svg>
+  );
+}
+
 function SettingsIcon() {
   return (
     <svg
@@ -259,20 +284,19 @@ const navItems: Array<{
   { href: "/products", labelKey: "nav.products", icon: ProductsIcon },
   { href: "/categories", labelKey: "nav.categories", icon: CategoriesIcon },
   { href: "/customers", labelKey: "nav.customers", icon: CustomersIcon },
-  // Suppliers are commercial/purchasing data — admins and managers only.
+  // View-only for employees; create/edit/delete stays admin/manager.
   {
     href: "/suppliers",
     labelKey: "nav.suppliers",
     icon: SuppliersIcon,
-    roles: ["ADMIN", "MANAGER"],
   },
-  // Purchasing is admin/manager territory end-to-end — employees can't
-  // even view this module.
+  // Purchasing actions (create/edit/cancel/delete/receive) are admin/manager
+  // only, but any authenticated user — including employees — can view
+  // purchase orders (buttons are hidden for employees at the page level).
   {
     href: "/purchase-orders",
     labelKey: "nav.purchaseOrders",
     icon: PurchaseOrdersIcon,
-    roles: ["ADMIN", "MANAGER"],
   },
   // Sales orders are core — available to all authenticated users.
   {
@@ -286,11 +310,30 @@ const navItems: Array<{
     labelKey: "nav.invoices",
     icon: InvoicesIcon,
   },
+  // Reports — every role can view; export/print buttons are hidden for
+  // EMPLOYEE inside ExportButtons itself, so no roles restriction here.
   {
-    href: "/settings",
-    labelKey: "nav.settings",
-    icon: SettingsIcon,
+    href: "/reports",
+    labelKey: "nav.reports",
+    icon: OverviewIcon,
   },
+  // Inventory audit trail — admins and managers only.
+  {
+    href: "/stock-movements",
+    labelKey: "nav.stockMovements",
+    icon: PurchaseOrdersIcon,
+    roles: ["ADMIN", "MANAGER"],
+  },
+  // User management — visible to ADMIN (full CRUD) and MANAGER (view-only,
+  // enforced by the backend), hidden from EMPLOYEE.
+  {
+    href: "/users",
+    labelKey: "nav.users",
+    icon: UsersIcon,
+    roles: ["ADMIN", "MANAGER"],
+  },
+  // Settings moved to a header icon (next to theme/language) instead of
+  // the sidebar — see the <Link href="/settings"> button in the header.
 ];
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -484,6 +527,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-3">
               <ThemeToggle />
               <LanguageSwitcher />
+              <Link
+                href="/settings"
+                aria-label={t("nav.settings")}
+                title={t("nav.settings")}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                <SettingsIcon />
+              </Link>
               <button
                 onClick={() => setIsLogoutModalOpen(true)}
                 className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 lg:hidden"

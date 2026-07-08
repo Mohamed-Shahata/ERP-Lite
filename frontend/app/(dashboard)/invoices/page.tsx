@@ -19,7 +19,6 @@ export default function InvoicesPage() {
     hasNextPage: false,
     hasPreviousPage: false,
   });
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const currentPage = parseInt(searchParams.get("page") || "1");
@@ -30,7 +29,6 @@ export default function InvoicesPage() {
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        setIsLoading(true);
         const response = await listInvoicesRequest({
           page: currentPage,
           limit: 10,
@@ -42,12 +40,11 @@ export default function InvoicesPage() {
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : t("invoices.loadError"));
-      } finally {
-        setIsLoading(false);
       }
     };
 
     fetchInvoices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchQuery, statusFilter]);
 
   if (error) {
@@ -66,33 +63,19 @@ export default function InvoicesPage() {
           {t("invoices.title")}
         </h1>
         <p className="text-slate-600 dark:text-slate-400 mt-1">
-          {t("invoices.allInvoices")}
+          {t("invoices.description")}
         </p>
       </div>
 
-      {/* Loading State */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="inline-block">
-              <div className="h-8 w-8 rounded-full border-4 border-blue-200 border-t-blue-600 dark:border-blue-800 dark:border-t-blue-400 animate-spin"></div>
-            </div>
-            <p className="mt-4 text-slate-600 dark:text-slate-400">
-              {t("common.loading")}
-            </p>
-          </div>
-        </div>
-      ) : (
-        <InvoicesList
-          initialInvoices={invoices}
-          meta={meta}
-          onPageChange={(page) => {
-            const url = new URL(window.location.href);
-            url.searchParams.set("page", page.toString());
-            window.history.pushState({}, "", url);
-          }}
-        />
-      )}
+      <InvoicesList
+        initialInvoices={invoices}
+        meta={meta}
+        onPageChange={(page) => {
+          const url = new URL(window.location.href);
+          url.searchParams.set("page", page.toString());
+          window.history.pushState({}, "", url);
+        }}
+      />
     </div>
   );
 }

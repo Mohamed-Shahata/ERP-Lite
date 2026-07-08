@@ -82,3 +82,8 @@ export type Payment = Prisma.PaymentModel
  * 
  */
 export type StockMovement = Prisma.StockMovementModel
+/**
+ * Model CompanySettings
+ * 
+ */
+export type CompanySettings = Prisma.CompanySettingsModel

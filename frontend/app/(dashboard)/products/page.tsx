@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { listCategoriesRequest } from "@/lib/api/categories.api";
 import {
   createProductRequest,
@@ -189,10 +190,6 @@ export default function ProductsPage() {
   const { t } = useTranslations();
   const canManage = user?.role === "ADMIN" || user?.role === "MANAGER";
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [totalProducts, setTotalProducts] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -206,6 +203,31 @@ export default function ProductsPage() {
 
   const [productsPage, setProductsPage] = useState(1);
   const [productsPageSize, setProductsPageSize] = useState(10);
+
+  const queryClient = useQueryClient();
+
+  const { data: categoriesResult } = useQuery({
+    queryKey: ["categories", "all"],
+    queryFn: () => listCategoriesRequest({ limit: 100 }),
+  });
+  const categories = categoriesResult?.data ?? [];
+
+  const {
+    data: productsResult,
+    isLoading,
+    error: loadError,
+  } = useQuery({
+    queryKey: ["products", productsPage, productsPageSize],
+    queryFn: () =>
+      listProductsRequest({ page: productsPage, limit: productsPageSize }),
+  });
+  const products = productsResult?.data ?? [];
+  const totalProducts = productsResult?.meta.total ?? 0;
+  const displayError = error ?? (loadError ? t("products.loadError") : null);
+
+  function invalidateProducts() {
+    return queryClient.invalidateQueries({ queryKey: ["products"] });
+  }
 
   const categoryNameById = useMemo(() => {
     const map = new Map<string, string>();
@@ -222,30 +244,6 @@ export default function ProductsPage() {
         product.sku.toLowerCase().includes(term),
     );
   }, [products, searchTerm]);
-
-  async function loadAll() {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const [categoriesResult, productsResult] = await Promise.all([
-        listCategoriesRequest({ limit: 100 }),
-        listProductsRequest({ page: productsPage, limit: productsPageSize }),
-      ]);
-      setCategories(categoriesResult.data);
-      setProducts(productsResult.data);
-      setTotalProducts(productsResult.meta.total);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("products.loadError"));
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productsPage, productsPageSize]);
 
   async function handleCreateProduct(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -264,7 +262,7 @@ export default function ProductsPage() {
       });
       setProductForm(emptyProductForm);
       setMessage(t("products.created"));
-      await loadAll();
+      await invalidateProducts();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("products.createError"));
     } finally {
@@ -294,7 +292,7 @@ export default function ProductsPage() {
     setMessage(null);
     setError(null);
     try {
-      const updated = await updateProductRequest(productId, {
+      await updateProductRequest(productId, {
         ...productEditForm,
         sku: productEditForm.sku.trim(),
         name: productEditForm.name.trim(),
@@ -303,11 +301,7 @@ export default function ProductsPage() {
         sellPrice: Number(productEditForm.sellPrice),
         reorderLevel: Number(productEditForm.reorderLevel ?? 10),
       });
-      setProducts((current) =>
-        current.map((product) =>
-          product.id === productId ? updated : product,
-        ),
-      );
+      await invalidateProducts();
       setEditingProductId(null);
       setMessage(t("products.updated"));
     } catch (err) {
@@ -327,7 +321,7 @@ export default function ProductsPage() {
     try {
       await deleteProductRequest(product.id);
       setMessage(t("products.deleted"));
-      await loadAll();
+      await invalidateProducts();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("products.deleteError"));
     } finally {
@@ -367,7 +361,7 @@ export default function ProductsPage() {
             </p>
           </div>
           <button
-            onClick={() => void loadAll()}
+            onClick={() => void invalidateProducts()}
             className="flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700"
             type="button"
           >
@@ -377,15 +371,15 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      {(message || error) && (
+      {(message || displayError) && (
         <div
           className={`rounded-xl border px-4 py-3 text-sm ${
-            error
+            displayError
               ? "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400"
               : "border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400"
           }`}
         >
-          {error ?? message}
+          {displayError ?? message}
         </div>
       )}
 

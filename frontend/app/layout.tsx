@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cairo, IBM_Plex_Sans } from "next/font/google";
 import { LocaleProvider } from "@/components/providers/LocaleProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import "./globals.css";
 
 // Latin (English/numbers) text.
@@ -40,7 +41,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
         <ThemeProvider>
-          <LocaleProvider>{children}</LocaleProvider>
+          <QueryProvider>
+            <LocaleProvider>{children}</LocaleProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -11,6 +11,7 @@ import {
 } from "@/lib/api/users.api";
 import type { Role, SystemUser } from "@/types/auth.types";
 import { useTranslations } from "@/lib/i18n/use-translations";
+import { useAuthStore } from "@/lib/auth/auth-store";
 
 const roles: Role[] = ["EMPLOYEE", "MANAGER", "ADMIN"];
 
@@ -121,6 +122,10 @@ function StatusPill({ active, label }: { active: boolean; label: string }) {
 
 export default function UsersSettingsPage() {
   const { t, dateLocale } = useTranslations();
+  const { user } = useAuthStore();
+  // Manager can view the users list but only ADMIN can create/edit/
+  // activate-deactivate (enforced by the backend too).
+  const isAdmin = user?.role === "ADMIN";
   const [users, setUsers] = useState<SystemUser[]>([]);
   const [form, setForm] = useState<CreateUserPayload>(emptyCreateForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -302,74 +307,79 @@ export default function UsersSettingsPage() {
         </div>
       )}
 
-      {/* Create user */}
-      <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-        <h3 className="text-base font-semibold text-slate-950 dark:text-white">
-          {t("users.createUser")}
-        </h3>
-        <form
-          onSubmit={handleCreate}
-          className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_160px_auto]"
-        >
-          <input
-            className={inputClass}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, name: event.target.value }))
-            }
-            placeholder={t("common.name")}
-            required
-            value={form.name}
-          />
-          <input
-            className={inputClass}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, email: event.target.value }))
-            }
-            placeholder={t("common.email")}
-            required
-            type="email"
-            value={form.email}
-          />
-          <input
-            className={inputClass}
-            minLength={8}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                password: event.target.value,
-              }))
-            }
-            placeholder={t("common.password")}
-            required
-            type="password"
-            value={form.password}
-          />
-          <select
-            className={inputClass}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                role: event.target.value as Role,
-              }))
-            }
-            value={form.role}
+      {/* Create user — ADMIN only */}
+      {isAdmin && (
+        <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
+          <h3 className="text-base font-semibold text-slate-950 dark:text-white">
+            {t("users.createUser")}
+          </h3>
+          <form
+            onSubmit={handleCreate}
+            className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_160px_auto]"
           >
-            {roles.map((role) => (
-              <option key={role} value={role}>
-                {role}
-              </option>
-            ))}
-          </select>
-          <button
-            className="flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={isSaving}
-            type="submit"
-          >
-            <PlusIcon />
-            {t("common.create")}
-          </button>
-        </form>
-      </section>
+            <input
+              className={inputClass}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, name: event.target.value }))
+              }
+              placeholder={t("common.name")}
+              required
+              value={form.name}
+            />
+            <input
+              className={inputClass}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  email: event.target.value,
+                }))
+              }
+              placeholder={t("common.email")}
+              required
+              type="email"
+              value={form.email}
+            />
+            <input
+              className={inputClass}
+              minLength={8}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  password: event.target.value,
+                }))
+              }
+              placeholder={t("common.password")}
+              required
+              type="password"
+              value={form.password}
+            />
+            <select
+              className={inputClass}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  role: event.target.value as Role,
+                }))
+              }
+              value={form.role}
+            >
+              {roles.map((role) => (
+                <option key={role} value={role}>
+                  {role}
+                </option>
+              ))}
+            </select>
+            <button
+              className="flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isSaving}
+              type="submit"
+            >
+              <PlusIcon />
+              {t("common.create")}
+            </button>
+          </form>
+        </section>
+      )}
 
       {/* Users table */}
       <section className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
@@ -509,7 +519,11 @@ export default function UsersSettingsPage() {
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex justify-end gap-2">
-                          {isEditing ? (
+                          {!isAdmin ? (
+                            <span className="text-xs text-slate-400 dark:text-slate-500">
+                              {t("common.readOnlyAccess")}
+                            </span>
+                          ) : isEditing ? (
                             <>
                               <button
                                 className="h-9 rounded-lg bg-blue-600 px-3 text-xs font-medium text-white hover:bg-blue-700 disabled:bg-slate-400"

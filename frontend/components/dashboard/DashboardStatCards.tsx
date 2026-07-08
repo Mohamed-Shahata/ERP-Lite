@@ -29,7 +29,10 @@ function WalletIcon({ className }: { className?: string }) {
         strokeLinejoin="round"
         d="M4 7.5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2Z"
       />
-      <path strokeLinecap="round" d="M16 7.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v1.5M18 12h3" />
+      <path
+        strokeLinecap="round"
+        d="M16 7.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v1.5M18 12h3"
+      />
     </svg>
   );
 }
@@ -66,7 +69,10 @@ function UsersIcon({ className }: { className?: string }) {
     >
       <circle cx="9" cy="7.5" r="3" />
       <path strokeLinecap="round" d="M3.5 19.5a5.5 5.5 0 0 1 11 0" />
-      <path strokeLinecap="round" d="M16 8a2.75 2.75 0 1 1 0 5.5M18.5 19.5a4.75 4.75 0 0 0-3.9-4.67" />
+      <path
+        strokeLinecap="round"
+        d="M16 8a2.75 2.75 0 1 1 0 5.5M18.5 19.5a4.75 4.75 0 0 0-3.9-4.67"
+      />
     </svg>
   );
 }
@@ -81,7 +87,11 @@ function CartIcon({ className }: { className?: string }) {
       strokeWidth={1.75}
       className={className}
     >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h2l2.5 11h9.5l2-7H7" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3 4h2l2.5 11h9.5l2-7H7"
+      />
       <circle cx="10" cy="19" r="1.5" />
       <circle cx="17" cy="19" r="1.5" />
     </svg>
@@ -100,21 +110,30 @@ function StatCardView({ card }: { card: StatCard }) {
       }`}
     >
       <div className="flex items-start justify-between gap-3">
-        <span
-          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
-            featured
-              ? "bg-white/20 text-white"
-              : "bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400"
-          }`}
-        >
-          {card.trend}
-          <span className="ms-1 font-normal opacity-80">{card.trendLabel}</span>
-        </span>
+        <div className="min-w-0 pe-2">
+          <p
+            className={`text-xs font-semibold leading-snug ${
+              featured ? "text-blue-100" : "text-red-600 dark:text-red-400"
+            }`}
+          >
+            {card.trend}
+          </p>
+          <span
+            className={`mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
+              featured
+                ? "bg-white/15 text-white"
+                : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+            }`}
+          >
+            {card.trendLabel}
+          </span>
+        </div>
         <span
           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
             featured
               ? "bg-white/15 text-white"
-              : card.iconBg ?? "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+              : (card.iconBg ??
+                "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400")
           }`}
         >
           {card.icon}
@@ -188,7 +207,8 @@ export function DashboardStatCards({
       trend: labels.trends.customers,
       trendLabel: labels.thisMonth,
       icon: <UsersIcon className="h-5 w-5" />,
-      iconBg: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
+      iconBg:
+        "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
     },
     {
       label: labels.totalPurchases,

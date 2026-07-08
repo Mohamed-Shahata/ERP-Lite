@@ -9,6 +9,8 @@ import {
   type PurchaseOrderItemPayload,
 } from "@/lib/api/purchase-orders.api";
 import { listSuppliersRequest } from "@/lib/api/suppliers.api";
+import { useAuthStore } from "@/lib/auth/auth-store";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import { Pagination } from "@/components/ui/Pagination";
 import { PurchaseOrderItemsForm } from "@/components/purchase-orders/PurchaseOrderItemsForm";
@@ -50,6 +52,10 @@ function PlusIcon() {
 
 export default function PurchaseOrdersPage() {
   const { t, dateLocale } = useTranslations();
+  const { user } = useAuthStore();
+  // Purchasing actions (create/edit/cancel/delete/receive) are admin/manager
+  // only; employees can view the list but not act on it.
+  const canManage = user?.role === "ADMIN" || user?.role === "MANAGER";
 
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -157,14 +163,16 @@ export default function PurchaseOrdersPage() {
               {t("purchaseOrders.summary", { count: totalOrders })}
             </p>
           </div>
-          <button
-            className="flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700"
-            onClick={openCreateForm}
-            type="button"
-          >
-            <PlusIcon />
-            {t("purchaseOrders.create")}
-          </button>
+          {canManage && (
+            <button
+              className="flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700"
+              onClick={openCreateForm}
+              type="button"
+            >
+              <PlusIcon />
+              {t("purchaseOrders.create")}
+            </button>
+          )}
         </div>
       </section>
 
@@ -193,22 +201,17 @@ export default function PurchaseOrdersPage() {
               >
                 {t("purchaseOrders.supplier")}
               </label>
-              <select
+              <SearchableSelect
                 id="po-supplier"
                 required
-                className="h-10 w-full rounded-xl border border-slate-300 dark:border-slate-700 px-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:bg-slate-900 dark:text-white"
-                onChange={(event) => setSupplierId(event.target.value)}
+                options={suppliers.map((supplier) => ({
+                  id: supplier.id,
+                  label: supplier.name,
+                }))}
                 value={supplierId}
-              >
-                <option value="" disabled>
-                  {t("purchaseOrders.selectSupplier")}
-                </option>
-                {suppliers.map((supplier) => (
-                  <option key={supplier.id} value={supplier.id}>
-                    {supplier.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setSupplierId}
+                placeholder={t("purchaseOrders.selectSupplier")}
+              />
             </div>
 
             <PurchaseOrderItemsForm

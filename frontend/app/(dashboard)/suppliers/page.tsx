@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createSupplierRequest,
   deleteSupplierRequest,
@@ -120,9 +121,6 @@ export default function SuppliersPage() {
   const canManage = user?.role === "ADMIN" || user?.role === "MANAGER";
   const canDelete = user?.role === "ADMIN";
 
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [totalSuppliers, setTotalSuppliers] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -137,6 +135,24 @@ export default function SuppliersPage() {
   const [suppliersPage, setSuppliersPage] = useState(1);
   const [suppliersPageSize, setSuppliersPageSize] = useState(10);
 
+  const queryClient = useQueryClient();
+  const {
+    data: suppliersResult,
+    isLoading,
+    error: loadError,
+  } = useQuery({
+    queryKey: ["suppliers", suppliersPage, suppliersPageSize],
+    queryFn: () =>
+      listSuppliersRequest({ page: suppliersPage, limit: suppliersPageSize }),
+  });
+  const suppliers = suppliersResult?.data ?? [];
+  const totalSuppliers = suppliersResult?.meta.total ?? 0;
+  const displayError = error ?? (loadError ? t("suppliers.loadError") : null);
+
+  function invalidateSuppliers() {
+    return queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+  }
+
   const visibleSuppliers = useMemo(() => {
     if (!searchTerm.trim()) return suppliers;
     const term = searchTerm.trim().toLowerCase();
@@ -147,29 +163,6 @@ export default function SuppliersPage() {
         (supplier.phone ?? "").toLowerCase().includes(term),
     );
   }, [suppliers, searchTerm]);
-
-  async function loadSuppliers() {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await listSuppliersRequest({
-        page: suppliersPage,
-        limit: suppliersPageSize,
-      });
-      setSuppliers(result.data);
-      setTotalSuppliers(result.meta.total);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("suppliers.loadError"));
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadSuppliers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [suppliersPage, suppliersPageSize]);
 
   async function handleCreateSupplier(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -185,7 +178,7 @@ export default function SuppliersPage() {
       });
       setSupplierForm(emptySupplierForm);
       setMessage(t("suppliers.created"));
-      await loadSuppliers();
+      await invalidateSuppliers();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("suppliers.createError"));
     } finally {
@@ -210,17 +203,13 @@ export default function SuppliersPage() {
     setMessage(null);
     setError(null);
     try {
-      const updated = await updateSupplierRequest(supplierId, {
+      await updateSupplierRequest(supplierId, {
         name: supplierEditForm.name.trim(),
         email: supplierEditForm.email.trim() || undefined,
         phone: supplierEditForm.phone.trim() || undefined,
         address: supplierEditForm.address.trim() || undefined,
       });
-      setSuppliers((current) =>
-        current.map((supplier) =>
-          supplier.id === supplierId ? { ...supplier, ...updated } : supplier,
-        ),
-      );
+      await invalidateSuppliers();
       setEditingSupplierId(null);
       setMessage(t("suppliers.updated"));
     } catch (err) {
@@ -242,7 +231,7 @@ export default function SuppliersPage() {
     try {
       await deleteSupplierRequest(supplier.id);
       setMessage(t("suppliers.deleted"));
-      await loadSuppliers();
+      await invalidateSuppliers();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("suppliers.deleteError"));
     } finally {
@@ -279,7 +268,7 @@ export default function SuppliersPage() {
             </p>
           </div>
           <button
-            onClick={() => void loadSuppliers()}
+            onClick={() => void invalidateSuppliers()}
             className="flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700"
             type="button"
           >
@@ -289,15 +278,15 @@ export default function SuppliersPage() {
         </div>
       </section>
 
-      {(message || error) && (
+      {(message || displayError) && (
         <div
           className={`rounded-xl border px-4 py-3 text-sm ${
-            error
+            displayError
               ? "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400"
               : "border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400"
           }`}
         >
-          {error ?? message}
+          {displayError ?? message}
         </div>
       )}
 

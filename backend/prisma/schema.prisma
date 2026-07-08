@@ -251,3 +251,19 @@ model StockMovement {
 
   createdAt     DateTime       @default(now())
 }
+
+model CompanySettings {
+  id                String   @id @default(uuid())
+
+  name              String
+  logoUrl           String?
+  currency          String   @default("EGP")
+  address           String
+  taxNumber         String?
+  invoicePrefix     String?
+  invoiceFooterNote String?
+  paymentTerms      String?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}

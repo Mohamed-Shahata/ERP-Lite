@@ -10,9 +10,15 @@ import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { SuppliersRepository } from './suppliers.repository';
 
+import { CacheService } from '../common/cache/cache.service';
+import { CACHE_PREFIX, CACHE_TTL } from '../common/cache/cache-keys.constants';
+
 @Injectable()
 export class SuppliersService {
-  constructor(private readonly suppliersRepository: SuppliersRepository) {}
+  constructor(
+    private readonly suppliersRepository: SuppliersRepository,
+    private readonly cache: CacheService,
+  ) {}
 
   async findAll(): Promise<Supplier[]> {
     return this.suppliersRepository.findAll();
@@ -21,7 +27,10 @@ export class SuppliersService {
   async findAllPaginated(
     query: PaginationQueryDto,
   ): Promise<PaginatedResult<Supplier>> {
-    return this.suppliersRepository.findAllPaginated(query);
+    const cacheKey = `${CACHE_PREFIX.SUPPLIERS_LIST}${JSON.stringify(query)}`;
+    return this.cache.getOrSet(cacheKey, CACHE_TTL.LIST, () =>
+      this.suppliersRepository.findAllPaginated(query),
+    );
   }
 
   async findOne(id: string): Promise<Supplier> {
@@ -39,12 +48,14 @@ export class SuppliersService {
       await this.ensureEmailAvailable(dto.email);
     }
 
-    return this.suppliersRepository.create({
+    const supplier = await this.suppliersRepository.create({
       name: dto.name.trim(),
       email: dto.email?.toLowerCase().trim(),
       phone: dto.phone?.trim(),
       address: dto.address?.trim(),
     });
+    this.cache.invalidatePrefix(CACHE_PREFIX.SUPPLIERS_LIST);
+    return supplier;
   }
 
   async update(id: string, dto: UpdateSupplierDto): Promise<Supplier> {
@@ -54,7 +65,7 @@ export class SuppliersService {
       await this.ensureEmailAvailable(dto.email, id);
     }
 
-    return this.suppliersRepository.update(id, {
+    const updated = await this.suppliersRepository.update(id, {
       ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
       ...(dto.email !== undefined
         ? { email: dto.email.toLowerCase().trim() }
@@ -62,6 +73,8 @@ export class SuppliersService {
       ...(dto.phone !== undefined ? { phone: dto.phone.trim() } : {}),
       ...(dto.address !== undefined ? { address: dto.address.trim() } : {}),
     });
+    this.cache.invalidatePrefix(CACHE_PREFIX.SUPPLIERS_LIST);
+    return updated;
   }
 
   async remove(id: string): Promise<Supplier> {
@@ -75,7 +88,9 @@ export class SuppliersService {
       );
     }
 
-    return this.suppliersRepository.delete(id);
+    const deleted = await this.suppliersRepository.delete(id);
+    this.cache.invalidatePrefix(CACHE_PREFIX.SUPPLIERS_LIST);
+    return deleted;
   }
 
   private async ensureEmailAvailable(

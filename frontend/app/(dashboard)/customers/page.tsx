@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createCustomerRequest,
   deleteCustomerRequest,
@@ -8,7 +9,6 @@ import {
   updateCustomerRequest,
 } from "@/lib/api/customers.api";
 import { Pagination } from "@/components/ui/Pagination";
-import { useAuthStore } from "@/lib/auth/auth-store";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import type { Customer } from "@/types/customer.types";
 
@@ -113,16 +113,11 @@ function PlusIcon() {
 }
 
 export default function CustomersPage() {
-  const { user } = useAuthStore();
   const { t } = useTranslations();
-  // Everyone can view customers; admins and managers can create/edit, but
-  // only an admin may delete one.
-  const canManage = user?.role === "ADMIN" || user?.role === "MANAGER";
-  const canDelete = user?.role === "ADMIN";
+  // Customers: ADMIN, MANAGER, and EMPLOYEE all get full CRUD.
+  const canManage = true;
+  const canDelete = true;
 
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [totalCustomers, setTotalCustomers] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -137,6 +132,24 @@ export default function CustomersPage() {
   const [customersPage, setCustomersPage] = useState(1);
   const [customersPageSize, setCustomersPageSize] = useState(10);
 
+  const queryClient = useQueryClient();
+  const {
+    data: customersResult,
+    isLoading,
+    error: loadError,
+  } = useQuery({
+    queryKey: ["customers", customersPage, customersPageSize],
+    queryFn: () =>
+      listCustomersRequest({ page: customersPage, limit: customersPageSize }),
+  });
+  const customers = customersResult?.data ?? [];
+  const totalCustomers = customersResult?.meta.total ?? 0;
+  const displayError = error ?? (loadError ? t("customers.loadError") : null);
+
+  function invalidateCustomers() {
+    return queryClient.invalidateQueries({ queryKey: ["customers"] });
+  }
+
   const visibleCustomers = useMemo(() => {
     if (!searchTerm.trim()) return customers;
     const term = searchTerm.trim().toLowerCase();
@@ -147,29 +160,6 @@ export default function CustomersPage() {
         (customer.phone ?? "").toLowerCase().includes(term),
     );
   }, [customers, searchTerm]);
-
-  async function loadCustomers() {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await listCustomersRequest({
-        page: customersPage,
-        limit: customersPageSize,
-      });
-      setCustomers(result.data);
-      setTotalCustomers(result.meta.total);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("customers.loadError"));
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadCustomers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customersPage, customersPageSize]);
 
   async function handleCreateCustomer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -185,7 +175,7 @@ export default function CustomersPage() {
       });
       setCustomerForm(emptyCustomerForm);
       setMessage(t("customers.created"));
-      await loadCustomers();
+      await invalidateCustomers();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("customers.createError"));
     } finally {
@@ -210,17 +200,13 @@ export default function CustomersPage() {
     setMessage(null);
     setError(null);
     try {
-      const updated = await updateCustomerRequest(customerId, {
+      await updateCustomerRequest(customerId, {
         name: customerEditForm.name.trim(),
         email: customerEditForm.email.trim() || undefined,
         phone: customerEditForm.phone.trim() || undefined,
         address: customerEditForm.address.trim() || undefined,
       });
-      setCustomers((current) =>
-        current.map((customer) =>
-          customer.id === customerId ? { ...customer, ...updated } : customer,
-        ),
-      );
+      await invalidateCustomers();
       setEditingCustomerId(null);
       setMessage(t("customers.updated"));
     } catch (err) {
@@ -242,7 +228,7 @@ export default function CustomersPage() {
     try {
       await deleteCustomerRequest(customer.id);
       setMessage(t("customers.deleted"));
-      await loadCustomers();
+      await invalidateCustomers();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("customers.deleteError"));
     } finally {
@@ -279,7 +265,7 @@ export default function CustomersPage() {
             </p>
           </div>
           <button
-            onClick={() => void loadCustomers()}
+            onClick={() => void invalidateCustomers()}
             className="flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700"
             type="button"
           >
@@ -289,15 +275,15 @@ export default function CustomersPage() {
         </div>
       </section>
 
-      {(message || error) && (
+      {(message || displayError) && (
         <div
           className={`rounded-xl border px-4 py-3 text-sm ${
-            error
+            displayError
               ? "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400"
               : "border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400"
           }`}
         >
-          {error ?? message}
+          {displayError ?? message}
         </div>
       )}
 

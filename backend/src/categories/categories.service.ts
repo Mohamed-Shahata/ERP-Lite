@@ -13,9 +13,15 @@ import {
   CategoryWithProductCount,
 } from './categories.repository';
 
+import { CacheService } from '../common/cache/cache.service';
+import { CACHE_PREFIX, CACHE_TTL } from '../common/cache/cache-keys.constants';
+
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly categoriesRepository: CategoriesRepository) {}
+  constructor(
+    private readonly categoriesRepository: CategoriesRepository,
+    private readonly cache: CacheService,
+  ) {}
 
   async findAll(): Promise<CategoryWithProductCount[]> {
     return this.categoriesRepository.findAll();
@@ -24,7 +30,10 @@ export class CategoriesService {
   async findAllPaginated(
     query: PaginationQueryDto,
   ): Promise<PaginatedResult<CategoryWithProductCount>> {
-    return this.categoriesRepository.findAllPaginated(query);
+    const cacheKey = `${CACHE_PREFIX.CATEGORIES_LIST}${JSON.stringify(query)}`;
+    return this.cache.getOrSet(cacheKey, CACHE_TTL.LIST, () =>
+      this.categoriesRepository.findAllPaginated(query),
+    );
   }
 
   async findOne(id: string): Promise<CategoryWithProductCount> {
@@ -40,10 +49,12 @@ export class CategoriesService {
   async create(dto: CreateCategoryDto): Promise<Category> {
     await this.ensureNameAvailable(dto.name);
 
-    return this.categoriesRepository.create({
+    const category = await this.categoriesRepository.create({
       name: dto.name.trim(),
       description: dto.description?.trim(),
     });
+    this.cache.invalidatePrefix(CACHE_PREFIX.CATEGORIES_LIST);
+    return category;
   }
 
   async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
@@ -53,12 +64,14 @@ export class CategoriesService {
       await this.ensureNameAvailable(dto.name, id);
     }
 
-    return this.categoriesRepository.update(id, {
+    const updated = await this.categoriesRepository.update(id, {
       ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
       ...(dto.description !== undefined
         ? { description: dto.description.trim() }
         : {}),
     });
+    this.cache.invalidatePrefix(CACHE_PREFIX.CATEGORIES_LIST);
+    return updated;
   }
 
   async remove(id: string): Promise<Category> {
@@ -71,7 +84,9 @@ export class CategoriesService {
       );
     }
 
-    return this.categoriesRepository.delete(id);
+    const deleted = await this.categoriesRepository.delete(id);
+    this.cache.invalidatePrefix(CACHE_PREFIX.CATEGORIES_LIST);
+    return deleted;
   }
 
   private async ensureNameAvailable(

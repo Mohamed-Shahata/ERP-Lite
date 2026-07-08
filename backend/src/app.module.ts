@@ -13,6 +13,10 @@ import { CustomersModule } from './customers/customers.module';
 import { SalesOrdersModule } from './sales-orders/sales-orders.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { PaymentsModule } from './payments/payments.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { StockMovementsModule } from './stock-movements/stock-movements.module';
+import { CompanySettingsModule } from './company-settings/company-settings.module';
+import { CacheModule } from './common/cache/cache.module';
 
 @Module({
   imports: [
@@ -27,7 +31,11 @@ import { PaymentsModule } from './payments/payments.module';
     CustomersModule,
     SalesOrdersModule,
     InvoicesModule,
+    StockMovementsModule,
     PaymentsModule,
+    DashboardModule,
+    CompanySettingsModule,
+    CacheModule,
   ],
   controllers: [AppController],
   providers: [AppService],
