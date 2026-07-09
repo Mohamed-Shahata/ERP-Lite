@@ -27,6 +27,14 @@ const emptyProductForm: CreateProductPayload = {
   isActive: true,
 };
 
+function formatCurrency(amount: string | number, dateLocale: string) {
+  const num = typeof amount === "string" ? parseFloat(amount) : amount;
+  return new Intl.NumberFormat(dateLocale, {
+    style: "currency",
+    currency: "EGP",
+  }).format(num);
+}
+
 function RefreshIcon() {
   return (
     <svg
@@ -187,7 +195,7 @@ function ToggleSwitch({
 
 export default function ProductsPage() {
   const { user } = useAuthStore();
-  const { t } = useTranslations();
+  const { t, dateLocale } = useTranslations();
   const canManage = user?.role === "ADMIN" || user?.role === "MANAGER";
 
   const [isSaving, setIsSaving] = useState(false);
@@ -537,7 +545,7 @@ export default function ProductsPage() {
                   </label>
                   <div className="relative">
                     <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-xs font-medium text-slate-400 dark:text-slate-500">
-                      USD
+                      EGP
                     </span>
                     <input
                       id="product-sell-price"
@@ -567,7 +575,7 @@ export default function ProductsPage() {
                   </label>
                   <div className="relative">
                     <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-xs font-medium text-slate-400 dark:text-slate-500">
-                      USD
+                      EGP
                     </span>
                     <input
                       id="product-cost-price"
@@ -751,7 +759,7 @@ export default function ProductsPage() {
                               value={productEditForm.costPrice}
                             />
                           ) : (
-                            `$${Number(product.costPrice).toFixed(2)}`
+                            formatCurrency(product.costPrice, dateLocale)
                           )}
                         </td>
                         <td className="px-5 py-4">
@@ -770,7 +778,7 @@ export default function ProductsPage() {
                               value={productEditForm.sellPrice}
                             />
                           ) : (
-                            `$${Number(product.sellPrice).toFixed(2)}`
+                            formatCurrency(product.sellPrice, dateLocale)
                           )}
                         </td>
                         <td className="px-5 py-4">

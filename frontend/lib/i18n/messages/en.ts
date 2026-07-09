@@ -305,6 +305,7 @@ export const en = {
     loading: "Loading categories...",
     empty: "No categories yet.",
     itemLabel: "categories",
+    searchPlaceholder: "Search categories...",
     categoryName: "Category name",
     products: "Products",
     addCategory: "Add category",

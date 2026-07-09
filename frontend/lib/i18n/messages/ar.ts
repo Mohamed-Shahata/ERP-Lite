@@ -303,6 +303,7 @@ export const ar: Messages = {
     loading: "جاري تحميل التصنيفات...",
     empty: "لا توجد تصنيفات بعد.",
     itemLabel: "تصنيفات",
+    searchPlaceholder: "ابحث عن تصنيف...",
     categoryName: "اسم التصنيف",
     products: "المنتجات",
     addCategory: "إضافة تصنيف",

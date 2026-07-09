@@ -360,6 +360,7 @@ export default function CustomersPage() {
                   <input
                     id="customer-phone"
                     className={inputClass}
+                    dir="ltr"
                     onChange={(event) =>
                       setCustomerForm((current) => ({
                         ...current,
@@ -367,6 +368,7 @@ export default function CustomersPage() {
                       }))
                     }
                     placeholder={t("customers.placeholders.phone")}
+                    type="tel"
                     value={customerForm.phone}
                   />
                 </div>
@@ -506,6 +508,7 @@ export default function CustomersPage() {
                           {isEditing ? (
                             <input
                               className={smallInputClass}
+                              dir="ltr"
                               onChange={(event) =>
                                 setCustomerEditForm((current) => ({
                                   ...current,
@@ -513,10 +516,11 @@ export default function CustomersPage() {
                                 }))
                               }
                               placeholder={t("customers.placeholders.phone")}
+                              type="tel"
                               value={customerEditForm.phone}
                             />
                           ) : (
-                            (customer.phone ?? "—")
+                            <span dir="ltr">{customer.phone ?? "—"}</span>
                           )}
                         </td>
                         <td className="px-5 py-4 text-slate-500 dark:text-slate-400">

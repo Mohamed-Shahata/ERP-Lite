@@ -108,7 +108,7 @@ function PlusIcon() {
 
 export default function CategoriesPage() {
   const { user } = useAuthStore();
-  const { t } = useTranslations();
+  const { t, dateLocale } = useTranslations();
   const canManage = user?.role === "ADMIN" || user?.role === "MANAGER";
 
   const [isSaving, setIsSaving] = useState(false);
@@ -455,7 +455,9 @@ export default function CategoriesPage() {
                         </td>
                         <td className="px-5 py-4">
                           <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-300">
-                            {category._count?.products ?? 0}
+                            {new Intl.NumberFormat(dateLocale).format(
+                              category._count?.products ?? 0,
+                            )}
                           </span>
                         </td>
                         {canManage && (
