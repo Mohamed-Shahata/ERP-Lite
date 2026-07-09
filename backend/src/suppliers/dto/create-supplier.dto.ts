@@ -1,4 +1,5 @@
 import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { Sanitize } from '../../common/utils/sanitize.util';
 
 export class CreateSupplierDto {
   @IsString()
@@ -15,5 +16,6 @@ export class CreateSupplierDto {
 
   @IsOptional()
   @IsString()
+  @Sanitize()
   address?: string;
 }

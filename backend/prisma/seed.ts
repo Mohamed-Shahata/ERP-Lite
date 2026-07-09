@@ -620,6 +620,10 @@ async function main() {
 
   // Create products, each linked to its category via categoryId
   let createdProducts = 0;
+  const productBySku = new Map<
+    string,
+    { id: string; costPrice: number; sellPrice: number }
+  >();
   for (const p of productsData) {
     const categoryId = categoryIdByName.get(p.category);
     if (!categoryId) {
@@ -628,7 +632,7 @@ async function main() {
       );
       continue;
     }
-    await prisma.product.create({
+    const created = await prisma.product.create({
       data: {
         sku: p.sku,
         name: p.name,
@@ -639,9 +643,683 @@ async function main() {
         reorderLevel: p.reorderLevel,
       },
     });
+    productBySku.set(p.sku, {
+      id: created.id,
+      costPrice: p.costPrice,
+      sellPrice: p.sellPrice,
+    });
     createdProducts++;
   }
   console.log(`created ${createdProducts} products`);
+
+  // ------------------------------------------------------------------
+  // Users (extra roles besides the ADMIN created above)
+  // ------------------------------------------------------------------
+  const managerPasswordHash = await bcrypt.hash('Password123', 10);
+  const manager = await prisma.user.create({
+    data: {
+      email: 'manager@erp-lite.test',
+      name: 'Mahmoud Khaled',
+      role: 'MANAGER',
+      passwordHash: managerPasswordHash,
+    },
+  });
+
+  const employeePasswordHash = await bcrypt.hash('Password123', 10);
+  const employee1 = await prisma.user.create({
+    data: {
+      email: 'employee1@erp-lite.test',
+      name: 'Mostafa Ahmed',
+      role: 'EMPLOYEE',
+      passwordHash: employeePasswordHash,
+    },
+  });
+  const employee2 = await prisma.user.create({
+    data: {
+      email: 'employee2@erp-lite.test',
+      name: 'Rawan Hesham',
+      role: 'EMPLOYEE',
+      passwordHash: employeePasswordHash,
+    },
+  });
+  const inactiveEmployee = await prisma.user.create({
+    data: {
+      email: 'inactive@erp-lite.test',
+      name: 'Hagar Ahmed',
+      role: 'EMPLOYEE',
+      passwordHash: employeePasswordHash,
+      isActive: false,
+    },
+  });
+  console.log(
+    'created users: manager, 2 active employees, 1 inactive employee',
+  );
+
+  // ------------------------------------------------------------------
+  // Company settings (singleton row)
+  // ------------------------------------------------------------------
+  await prisma.companySettings.create({
+    data: {
+      name: 'ERP Lite Trading Co.',
+      currency: 'EGP',
+      address: '12 Tahrir Street, Cairo, Egypt',
+      taxNumber: 'EG-123-456-789',
+      invoicePrefix: 'INV-',
+      invoiceFooterNote: 'Thank you for your business!',
+      paymentTerms: 'Payment due within 14 days of invoice date.',
+    },
+  });
+  console.log('created company settings');
+
+  // ------------------------------------------------------------------
+  // Suppliers
+  // ------------------------------------------------------------------
+  const suppliersData = [
+    {
+      name: 'Nile Electronics Trading',
+      email: 'sales@nile-electronics.com',
+      phone: '+20 100 111 2222',
+      address: 'Industrial Zone, 6th of October City, Giza',
+    },
+    {
+      name: 'Cairo Appliance Distributors',
+      email: 'contact@cairo-appliances.com',
+      phone: '+20 101 222 3333',
+      address: 'Salah Salem St, Cairo',
+    },
+    {
+      name: 'Delta Furniture Works',
+      email: 'orders@delta-furniture.com',
+      phone: '+20 102 333 4444',
+      address: 'Mansoura Industrial Area, Dakahlia',
+    },
+    {
+      name: 'Alexandria Grocery Supply',
+      email: 'info@alex-grocery.com',
+      phone: '+20 103 444 5555',
+      address: 'Free Zone, Alexandria',
+    },
+    {
+      name: 'Smart Mobile Wholesale',
+      email: 'wholesale@smartmobile.com',
+      phone: '+20 104 555 6666',
+      address: 'Downtown, Cairo',
+    },
+  ];
+  const suppliers: Awaited<ReturnType<typeof prisma.supplier.create>>[] = [];
+  for (const s of suppliersData) {
+    suppliers.push(await prisma.supplier.create({ data: s }));
+  }
+  console.log(`created ${suppliers.length} suppliers`);
+
+  // ------------------------------------------------------------------
+  // Customers
+  // ------------------------------------------------------------------
+  const customersData = [
+    {
+      name: 'Ahmed Hassan',
+      email: 'ahmed.hassan@example.com',
+      phone: '+20 111 000 1111',
+      address: 'Nasr City, Cairo',
+    },
+    {
+      name: 'Sara Mahmoud',
+      email: 'sara.mahmoud@example.com',
+      phone: '+20 112 000 2222',
+      address: 'Sheikh Zayed, Giza',
+    },
+    {
+      name: 'Omar Fathy Retail Store',
+      email: 'omar.fathy@example.com',
+      phone: '+20 113 000 3333',
+      address: 'Mohandessin, Giza',
+    },
+    {
+      name: 'Nour El-Din Trading',
+      email: 'noureldin@example.com',
+      phone: '+20 114 000 4444',
+      address: 'Heliopolis, Cairo',
+    },
+    {
+      name: 'Yasmine Adel',
+      email: null,
+      phone: '+20 115 000 5555',
+      address: 'Maadi, Cairo',
+    },
+    {
+      name: 'Karim Salah Electronics Shop',
+      email: 'karim.salah@example.com',
+      phone: '+20 116 000 6666',
+      address: 'Smouha, Alexandria',
+    },
+    {
+      name: 'Mona Reda',
+      email: 'mona.reda@example.com',
+      phone: null,
+      address: 'Dokki, Giza',
+    },
+    {
+      name: 'Tarek Aboul-Enein',
+      email: 'tarek.aboulenein@example.com',
+      phone: '+20 117 000 7777',
+      address: '10th of Ramadan City, Sharqia',
+    },
+  ];
+  const customers: Awaited<ReturnType<typeof prisma.customer.create>>[] = [];
+  for (const c of customersData) {
+    customers.push(await prisma.customer.create({ data: c }));
+  }
+  console.log(`created ${customers.length} customers`);
+
+  // Helper to pull a product by SKU with a guaranteed non-null result
+  function product(sku: string) {
+    const p = productBySku.get(sku);
+    if (!p) throw new Error(`Seed error: product ${sku} not found`);
+    return p;
+  }
+
+  // ------------------------------------------------------------------
+  // Purchase Orders (+ items). Some RECEIVED (stock goes up + IN
+  // movements), some still PENDING (no stock effect yet).
+  // ------------------------------------------------------------------
+  const purchaseOrdersPlan: Array<{
+    poNumber: string;
+    supplier: (typeof suppliers)[number];
+    status: 'PENDING' | 'RECEIVED' | 'CANCELLED';
+    createdBy: typeof admin;
+    items: Array<{ sku: string; quantity: number }>;
+    daysAgo: number;
+  }> = [
+    {
+      poNumber: 'PO-2026-0001',
+      supplier: suppliers[0],
+      status: 'RECEIVED',
+      createdBy: admin,
+      items: [
+        { sku: 'ELEC-001', quantity: 20 },
+        { sku: 'ELEC-002', quantity: 40 },
+        { sku: 'ELEC-005', quantity: 30 },
+      ],
+      daysAgo: 20,
+    },
+    {
+      poNumber: 'PO-2026-0002',
+      supplier: suppliers[1],
+      status: 'RECEIVED',
+      createdBy: manager,
+      items: [
+        { sku: 'HOME-001', quantity: 10 },
+        { sku: 'HOME-002', quantity: 12 },
+        { sku: 'HOME-005', quantity: 25 },
+      ],
+      daysAgo: 18,
+    },
+    {
+      poNumber: 'PO-2026-0003',
+      supplier: suppliers[2],
+      status: 'RECEIVED',
+      createdBy: admin,
+      items: [
+        { sku: 'FURN-001', quantity: 8 },
+        { sku: 'FURN-002', quantity: 10 },
+      ],
+      daysAgo: 15,
+    },
+    {
+      poNumber: 'PO-2026-0004',
+      supplier: suppliers[4],
+      status: 'RECEIVED',
+      createdBy: manager,
+      items: [
+        { sku: 'MOB-001', quantity: 15 },
+        { sku: 'MOB-002', quantity: 25 },
+        { sku: 'MOB-006', quantity: 30 },
+      ],
+      daysAgo: 12,
+    },
+    {
+      poNumber: 'PO-2026-0005',
+      supplier: suppliers[3],
+      status: 'PENDING',
+      createdBy: admin,
+      items: [
+        { sku: 'GROC-001', quantity: 100 },
+        { sku: 'GROC-002', quantity: 80 },
+        { sku: 'GROC-003', quantity: 120 },
+      ],
+      daysAgo: 3,
+    },
+    {
+      poNumber: 'PO-2026-0006',
+      supplier: suppliers[0],
+      status: 'CANCELLED',
+      createdBy: manager,
+      items: [{ sku: 'COMP-002', quantity: 5 }],
+      daysAgo: 25,
+    },
+  ];
+
+  let poCount = 0;
+  for (const po of purchaseOrdersPlan) {
+    const createdAt = new Date(Date.now() - po.daysAgo * 24 * 60 * 60 * 1000);
+    const items = po.items.map(({ sku, quantity }) => {
+      const prod = product(sku);
+      return { productId: prod.id, quantity, unitCost: prod.costPrice };
+    });
+    const totalAmount = items.reduce(
+      (sum, i) => sum + i.quantity * i.unitCost,
+      0,
+    );
+
+    const createdPo = await prisma.purchaseOrder.create({
+      data: {
+        poNumber: po.poNumber,
+        supplierId: po.supplier.id,
+        status: po.status,
+        totalAmount,
+        createdById: po.createdBy.id,
+        createdAt,
+        receivedAt: po.status === 'RECEIVED' ? createdAt : null,
+        items: { create: items },
+      },
+    });
+
+    if (po.status === 'RECEIVED') {
+      for (const item of items) {
+        await prisma.product.update({
+          where: { id: item.productId },
+          data: { quantityInStock: { increment: item.quantity } },
+        });
+        await prisma.stockMovement.create({
+          data: {
+            productId: item.productId,
+            type: 'IN',
+            quantity: item.quantity,
+            referenceType: 'PURCHASE_ORDER',
+            referenceId: createdPo.id,
+            note: `Received against ${po.poNumber}`,
+            createdById: po.createdBy.id,
+            createdAt,
+          },
+        });
+      }
+    }
+    poCount++;
+  }
+  console.log(`created ${poCount} purchase orders`);
+
+  // ------------------------------------------------------------------
+  // Sales Orders (+ items) -> Invoices -> Payments. Also produces OUT
+  // stock movements for CONFIRMED orders.
+  // ------------------------------------------------------------------
+  const salesOrdersPlan: Array<{
+    orderNumber: string;
+    customer: (typeof customers)[number];
+    status: 'DRAFT' | 'CONFIRMED' | 'CANCELLED';
+    createdBy: typeof admin;
+    items: Array<{ sku: string; quantity: number }>;
+    daysAgo: number;
+    invoice?: {
+      invoiceNumber: string;
+      dueInDays: number;
+      payments: Array<{
+        amountRatio: number; // portion of invoice amount
+        method: 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'OTHER';
+        daysAfterInvoice: number;
+        recordedBy: typeof admin;
+      }>;
+    };
+  }> = [
+    {
+      orderNumber: 'SO-2026-0001',
+      customer: customers[0],
+      status: 'CONFIRMED',
+      createdBy: employee1,
+      items: [
+        { sku: 'ELEC-001', quantity: 2 },
+        { sku: 'ELEC-002', quantity: 3 },
+      ],
+      daysAgo: 14,
+      invoice: {
+        invoiceNumber: 'INV-2026-0001',
+        dueInDays: 14,
+        payments: [
+          {
+            amountRatio: 1,
+            method: 'CASH',
+            daysAfterInvoice: 1,
+            recordedBy: employee1,
+          },
+        ],
+      },
+    },
+    {
+      orderNumber: 'SO-2026-0002',
+      customer: customers[1],
+      status: 'CONFIRMED',
+      createdBy: manager,
+      items: [
+        { sku: 'HOME-001', quantity: 1 },
+        { sku: 'HOME-005', quantity: 2 },
+      ],
+      daysAgo: 12,
+      invoice: {
+        invoiceNumber: 'INV-2026-0002',
+        dueInDays: 14,
+        payments: [
+          {
+            amountRatio: 0.5,
+            method: 'BANK_TRANSFER',
+            daysAfterInvoice: 2,
+            recordedBy: manager,
+          },
+        ],
+      },
+    },
+    {
+      orderNumber: 'SO-2026-0003',
+      customer: customers[2],
+      status: 'CONFIRMED',
+      createdBy: employee2,
+      items: [{ sku: 'MOB-001', quantity: 3 }],
+      daysAgo: 10,
+      invoice: {
+        invoiceNumber: 'INV-2026-0003',
+        dueInDays: 7,
+        payments: [], // still fully UNPAID
+      },
+    },
+    {
+      orderNumber: 'SO-2026-0004',
+      customer: customers[3],
+      status: 'CONFIRMED',
+      createdBy: admin,
+      items: [
+        { sku: 'FURN-001', quantity: 1 },
+        { sku: 'FURN-002', quantity: 2 },
+      ],
+      daysAgo: 9,
+      invoice: {
+        invoiceNumber: 'INV-2026-0004',
+        dueInDays: 14,
+        payments: [
+          {
+            amountRatio: 0.6,
+            method: 'CARD',
+            daysAfterInvoice: 1,
+            recordedBy: admin,
+          },
+          {
+            amountRatio: 0.4,
+            method: 'CARD',
+            daysAfterInvoice: 5,
+            recordedBy: admin,
+          },
+        ],
+      },
+    },
+    {
+      orderNumber: 'SO-2026-0005',
+      customer: customers[5],
+      status: 'CONFIRMED',
+      createdBy: employee1,
+      items: [
+        { sku: 'MOB-006', quantity: 4 },
+        { sku: 'MOB-003', quantity: 6 },
+      ],
+      daysAgo: 6,
+      invoice: {
+        invoiceNumber: 'INV-2026-0005',
+        dueInDays: 14,
+        payments: [
+          {
+            amountRatio: 1,
+            method: 'CASH',
+            daysAfterInvoice: 0,
+            recordedBy: employee1,
+          },
+        ],
+      },
+    },
+    {
+      orderNumber: 'SO-2026-0006',
+      customer: customers[6],
+      status: 'DRAFT',
+      createdBy: employee2,
+      items: [{ sku: 'BEAU-003', quantity: 2 }],
+      daysAgo: 2,
+      // no invoice yet — order isn't confirmed
+    },
+    {
+      orderNumber: 'SO-2026-0007',
+      customer: customers[7],
+      status: 'CANCELLED',
+      createdBy: manager,
+      items: [{ sku: 'SPRT-004', quantity: 1 }],
+      daysAgo: 8,
+      // cancelled — no invoice, no stock effect
+    },
+    {
+      orderNumber: 'SO-2026-0008',
+      customer: customers[4],
+      status: 'CONFIRMED',
+      createdBy: admin,
+      items: [
+        { sku: 'GROC-001', quantity: 5 },
+        { sku: 'BOOK-002', quantity: 10 },
+      ],
+      daysAgo: 4,
+      invoice: {
+        invoiceNumber: 'INV-2026-0006',
+        dueInDays: 14,
+        payments: [],
+      },
+    },
+  ];
+
+  let soCount = 0;
+  let invoiceCount = 0;
+  let paymentCount = 0;
+  for (const so of salesOrdersPlan) {
+    const createdAt = new Date(Date.now() - so.daysAgo * 24 * 60 * 60 * 1000);
+    const items = so.items.map(({ sku, quantity }) => {
+      const prod = product(sku);
+      return { productId: prod.id, quantity, unitPrice: prod.sellPrice };
+    });
+    const totalAmount = items.reduce(
+      (sum, i) => sum + i.quantity * i.unitPrice,
+      0,
+    );
+
+    const createdSo = await prisma.salesOrder.create({
+      data: {
+        orderNumber: so.orderNumber,
+        customerId: so.customer.id,
+        status: so.status,
+        totalAmount,
+        createdById: so.createdBy.id,
+        createdAt,
+        confirmedAt: so.status === 'CONFIRMED' ? createdAt : null,
+        items: { create: items },
+      },
+    });
+    soCount++;
+
+    if (so.status === 'CONFIRMED') {
+      for (const item of items) {
+        await prisma.product.update({
+          where: { id: item.productId },
+          data: { quantityInStock: { decrement: item.quantity } },
+        });
+        await prisma.stockMovement.create({
+          data: {
+            productId: item.productId,
+            type: 'OUT',
+            quantity: item.quantity,
+            referenceType: 'SALES_ORDER',
+            referenceId: createdSo.id,
+            note: `Shipped against ${so.orderNumber}`,
+            createdById: so.createdBy.id,
+            createdAt,
+          },
+        });
+      }
+    }
+
+    if (so.invoice) {
+      const dueDate = new Date(
+        createdAt.getTime() + so.invoice.dueInDays * 24 * 60 * 60 * 1000,
+      );
+      const paymentsTotal = so.invoice.payments.reduce(
+        (sum, p) => sum + Math.round(totalAmount * p.amountRatio * 100) / 100,
+        0,
+      );
+      const status =
+        paymentsTotal <= 0
+          ? 'UNPAID'
+          : paymentsTotal >= totalAmount
+            ? 'PAID'
+            : 'PARTIALLY_PAID';
+
+      const createdInvoice = await prisma.invoice.create({
+        data: {
+          invoiceNumber: so.invoice.invoiceNumber,
+          salesOrderId: createdSo.id,
+          amount: totalAmount,
+          amountPaid: paymentsTotal,
+          status,
+          dueDate,
+          createdAt,
+        },
+      });
+      invoiceCount++;
+
+      for (const p of so.invoice.payments) {
+        const amount = Math.round(totalAmount * p.amountRatio * 100) / 100;
+        await prisma.payment.create({
+          data: {
+            invoiceId: createdInvoice.id,
+            amount,
+            method: p.method,
+            recordedById: p.recordedBy.id,
+            paidAt: new Date(
+              createdAt.getTime() + p.daysAfterInvoice * 24 * 60 * 60 * 1000,
+            ),
+          },
+        });
+        paymentCount++;
+      }
+    }
+  }
+  console.log(
+    `created ${soCount} sales orders, ${invoiceCount} invoices, ${paymentCount} payments`,
+  );
+
+  // ------------------------------------------------------------------
+  // A few manual stock adjustments (stock counts, damage, corrections)
+  // ------------------------------------------------------------------
+  const adjustments: Array<{
+    sku: string;
+    quantity: number;
+    note: string;
+    by: typeof admin;
+  }> = [
+    {
+      sku: 'ELEC-003',
+      quantity: 15,
+      note: 'Initial stock count adjustment',
+      by: admin,
+    },
+    {
+      sku: 'COMP-003',
+      quantity: 50,
+      note: 'Initial stock count adjustment',
+      by: admin,
+    },
+    {
+      sku: 'CLTH-001',
+      quantity: 40,
+      note: 'Initial stock count adjustment',
+      by: manager,
+    },
+    {
+      sku: 'HOME-003',
+      quantity: -2,
+      note: 'Damaged units written off',
+      by: manager,
+    },
+  ];
+  for (const adj of adjustments) {
+    const prod = product(adj.sku);
+    await prisma.product.update({
+      where: { id: prod.id },
+      data: { quantityInStock: { increment: adj.quantity } },
+    });
+    await prisma.stockMovement.create({
+      data: {
+        productId: prod.id,
+        type: 'ADJUSTMENT',
+        quantity: adj.quantity,
+        referenceType: 'MANUAL',
+        note: adj.note,
+        createdById: adj.by.id,
+      },
+    });
+  }
+  console.log(`created ${adjustments.length} manual stock adjustments`);
+
+  // ------------------------------------------------------------------
+  // Audit log samples
+  // ------------------------------------------------------------------
+  await prisma.auditLog.createMany({
+    data: [
+      {
+        action: 'LOGIN',
+        entityType: 'User',
+        entityId: admin.id,
+        userId: admin.id,
+        metadata: { ip: '127.0.0.1' },
+      },
+      {
+        action: 'CREATE',
+        entityType: 'PurchaseOrder',
+        entityId: null,
+        userId: admin.id,
+        metadata: { poNumber: 'PO-2026-0001' },
+      },
+      {
+        action: 'UPDATE',
+        entityType: 'CompanySettings',
+        entityId: null,
+        userId: admin.id,
+        metadata: { field: 'address' },
+      },
+      {
+        action: 'CREATE',
+        entityType: 'SalesOrder',
+        entityId: null,
+        userId: employee1.id,
+        metadata: { orderNumber: 'SO-2026-0001' },
+      },
+      {
+        action: 'RECORD_PAYMENT',
+        entityType: 'Payment',
+        entityId: null,
+        userId: manager.id,
+        metadata: { method: 'BANK_TRANSFER' },
+      },
+    ],
+  });
+  console.log('created sample audit log entries');
+
+  console.log('----------------------------------------');
+  console.log('Seed complete. Login credentials:');
+  console.log(`  ADMIN:    ${admin.email} / Password123`);
+  console.log(`  MANAGER:  ${manager.email} / Password123`);
+  console.log(`  EMPLOYEE: ${employee1.email} / Password123`);
+  console.log(`  EMPLOYEE: ${employee2.email} / Password123`);
+  console.log(`  (inactive, for testing): ${inactiveEmployee.email}`);
+  console.log('----------------------------------------');
 }
 main()
   .then(async () => {

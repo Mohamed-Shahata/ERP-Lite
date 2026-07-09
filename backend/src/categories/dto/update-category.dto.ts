@@ -1,4 +1,5 @@
 import { IsOptional, IsString, MinLength } from 'class-validator';
+import { Sanitize } from '../../common/utils/sanitize.util';
 
 export class UpdateCategoryDto {
   @IsOptional()
@@ -8,5 +9,6 @@ export class UpdateCategoryDto {
 
   @IsOptional()
   @IsString()
+  @Sanitize()
   description?: string;
 }

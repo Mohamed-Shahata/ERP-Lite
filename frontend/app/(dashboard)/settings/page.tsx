@@ -44,6 +44,26 @@ function BuildingIcon() {
   );
 }
 
+function ScrollIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      className="h-5 w-5"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M6 4h9a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4Z"
+      />
+      <path strokeLinecap="round" d="M9 8h6M9 12h6M9 16h3" />
+    </svg>
+  );
+}
+
 function ChevronIcon() {
   return (
     <svg
@@ -87,6 +107,14 @@ const settingsSections: SettingsSection[] = [
     icon: BuildingIcon,
     titleKey: "settings.companyCard.cardTitle",
     descriptionKey: "settings.companyCard.cardDescription",
+    roles: ["ADMIN"],
+  },
+  // Who did what, when — admins only.
+  {
+    href: "/settings/audit-logs",
+    icon: ScrollIcon,
+    titleKey: "auditLogs.cardTitle",
+    descriptionKey: "auditLogs.cardDescription",
     roles: ["ADMIN"],
   },
 ];

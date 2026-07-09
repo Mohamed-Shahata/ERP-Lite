@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
+import { CreateAdjustmentDto } from './dto/create-adjustment.dto';
 import { StockMovementQueryDto } from './dto/stock-movement-query.dto';
 import {
   StockMovementDetail,
@@ -14,5 +15,12 @@ export class StockMovementsService {
     query: StockMovementQueryDto,
   ): Promise<PaginatedResult<StockMovementDetail>> {
     return this.repository.findAllPaginated(query);
+  }
+
+  createAdjustment(
+    dto: CreateAdjustmentDto,
+    createdById: string,
+  ): Promise<StockMovementDetail> {
+    return this.repository.createAdjustment(dto, createdById);
   }
 }

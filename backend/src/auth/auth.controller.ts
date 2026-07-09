@@ -11,6 +11,7 @@ import {
   Req,
 } from '@nestjs/common';
 import type { Response, Request } from 'express';
+import { Throttle } from '@nestjs/throttler';
 import {
   AuthService,
   ACCESS_TOKEN_TTL_MS,
@@ -44,6 +45,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -66,12 +68,16 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
+    console.log(req.cookies);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const rawRefreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE];
     const { accessToken, refreshToken, user } =
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await this.authService.refreshTokens(rawRefreshToken);
 
+    // Purge any stale '/auth'-scoped cookie left over from before the path
+    // fix, so it can't shadow the freshly-rotated one on the next request.
+    clearAuthCookies(res);
     setAccessTokenCookie(res, accessToken, ACCESS_TOKEN_TTL_MS);
     setRefreshTokenCookie(res, refreshToken, REFRESH_TOKEN_TTL_MS);
 

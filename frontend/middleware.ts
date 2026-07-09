@@ -2,15 +2,21 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { findMatchingRule } from "@/lib/auth/route-rules";
 import { decodeJwtRole } from "@/lib/auth/decode-jwt-role";
-import { ACCESS_TOKEN_COOKIE } from "@/lib/auth/cookie-names";
+import {
+  ACCESS_TOKEN_COOKIE,
+  REFRESH_TOKEN_COOKIE,
+} from "@/lib/auth/cookie-names";
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
+  const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
+
+  const hasSession = Boolean(accessToken || refreshToken);
 
   if (pathname === "/") {
     return NextResponse.redirect(
-      new URL(accessToken ? "/dashboard" : "/login", request.url),
+      new URL(hasSession ? "/dashboard" : "/login", request.url),
     );
   }
 
@@ -19,8 +25,12 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!accessToken) {
+  if (!hasSession) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  if (!accessToken) {
+    return NextResponse.next();
   }
 
   const role = decodeJwtRole(accessToken);

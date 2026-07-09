@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { AuditLogService } from '../common/audit-log/audit-log.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { SafeUser, UpdateUserData, UsersRepository } from './users.repository';
@@ -12,7 +13,10 @@ const SALT_ROUNDS = 10;
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(
+    private readonly usersRepository: UsersRepository,
+    private readonly auditLog: AuditLogService,
+  ) {}
 
   async getMe(userId: string): Promise<SafeUser> {
     return this.findOne(userId);
@@ -32,22 +36,34 @@ export class UsersService {
     return user;
   }
 
-  async create(dto: CreateUserDto): Promise<SafeUser> {
+  async create(dto: CreateUserDto, actorId?: string): Promise<SafeUser> {
     await this.ensureEmailAvailable(dto.email);
 
     const passwordHash = await bcrypt.hash(dto.password, SALT_ROUNDS);
 
-    return this.usersRepository.create({
+    const user = await this.usersRepository.create({
       name: dto.name.trim(),
       email: dto.email.toLowerCase().trim(),
       passwordHash,
       role: dto.role,
       isActive: dto.isActive ?? true,
     });
+    void this.auditLog.log({
+      action: 'USER_CREATED',
+      entityType: 'User',
+      entityId: user.id,
+      userId: actorId,
+      metadata: { email: user.email, role: user.role },
+    });
+    return user;
   }
 
-  async update(id: string, dto: UpdateUserDto): Promise<SafeUser> {
-    await this.findOne(id);
+  async update(
+    id: string,
+    dto: UpdateUserDto,
+    actorId?: string,
+  ): Promise<SafeUser> {
+    const existing = await this.findOne(id);
 
     if (dto.email) {
       await this.ensureEmailAvailable(dto.email, id);
@@ -69,6 +85,16 @@ export class UsersService {
 
     const user = await this.usersRepository.update(id, data);
 
+    if (dto.role !== undefined && dto.role !== existing.role) {
+      void this.auditLog.log({
+        action: 'USER_ROLE_CHANGED',
+        entityType: 'User',
+        entityId: id,
+        userId: actorId,
+        metadata: { from: existing.role, to: dto.role },
+      });
+    }
+
     if (passwordHash || dto.isActive === false) {
       await this.usersRepository.revokeAllRefreshTokensForUser(id);
     }
@@ -76,8 +102,19 @@ export class UsersService {
     return user;
   }
 
-  async setActive(id: string, isActive: boolean): Promise<SafeUser> {
-    const user = await this.update(id, { isActive });
+  async setActive(
+    id: string,
+    isActive: boolean,
+    actorId?: string,
+  ): Promise<SafeUser> {
+    const user = await this.update(id, { isActive }, actorId);
+
+    void this.auditLog.log({
+      action: isActive ? 'USER_ACTIVATED' : 'USER_DEACTIVATED',
+      entityType: 'User',
+      entityId: id,
+      userId: actorId,
+    });
 
     if (!isActive) {
       await this.usersRepository.revokeAllRefreshTokensForUser(id);

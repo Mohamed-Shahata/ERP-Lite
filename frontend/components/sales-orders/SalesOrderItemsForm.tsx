@@ -14,6 +14,23 @@ interface SalesOrderItemsFormProps {
 const inputClass =
   "h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white";
 
+/** Returns the name of the first product whose requested quantity exceeds
+ * available stock, or null if every line item is within stock. Used to
+ * block order creation/editing before it ever reaches the API. */
+export function findInsufficientStockItem(
+  items: SalesOrderItemPayload[],
+  products: Product[],
+): string | null {
+  for (const item of items) {
+    if (!item.productId) continue;
+    const product = products.find((p) => p.id === item.productId);
+    if (product && item.quantity > product.quantityInStock) {
+      return product.name;
+    }
+  }
+  return null;
+}
+
 export function SalesOrderItemsForm({
   products,
   items,
@@ -80,65 +97,77 @@ export function SalesOrderItemsForm({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-            {items.map((item, index) => (
-              <tr key={index}>
-                <td className="px-4 py-2">
-                  <SearchableSelect
-                    className="min-w-48"
-                    options={products.map((product) => ({
-                      id: product.id,
-                      label: product.name,
-                      sublabel: product.sku,
-                    }))}
-                    value={item.productId}
-                    onChange={(productId) =>
-                      handleProductChange(index, productId)
-                    }
-                    placeholder={t("purchaseOrders.selectProduct")}
-                  />
-                </td>
-                <td className="px-4 py-2">
-                  <input
-                    className={`${inputClass} w-24`}
-                    min={1}
-                    onChange={(event) =>
-                      updateItem(index, {
-                        quantity: Number(event.target.value),
-                      })
-                    }
-                    type="number"
-                    value={item.quantity}
-                  />
-                </td>
-                <td className="px-4 py-2">
-                  <input
-                    className={`${inputClass} w-28`}
-                    min={0}
-                    onChange={(event) =>
-                      updateItem(index, {
-                        unitPrice: Number(event.target.value),
-                      })
-                    }
-                    step="0.01"
-                    type="number"
-                    value={item.unitPrice}
-                  />
-                </td>
-                <td className="px-4 py-2 text-slate-700 dark:text-slate-300">
-                  ${(item.quantity * item.unitPrice).toFixed(2)}
-                </td>
-                <td className="px-4 py-2">
-                  <button
-                    className="text-xs font-medium text-red-600 hover:underline dark:text-red-400 disabled:cursor-not-allowed disabled:opacity-40"
-                    disabled={items.length <= 1}
-                    onClick={() => removeRow(index)}
-                    type="button"
-                  >
-                    {t("common.delete")}
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {items.map((item, index) => {
+              const product = products.find((p) => p.id === item.productId);
+              const exceedsStock =
+                !!product && item.quantity > product.quantityInStock;
+              return (
+                <tr key={index}>
+                  <td className="px-4 py-2">
+                    <SearchableSelect
+                      className="min-w-48"
+                      options={products.map((product) => ({
+                        id: product.id,
+                        label: product.name,
+                        sublabel: product.sku,
+                      }))}
+                      value={item.productId}
+                      onChange={(productId) =>
+                        handleProductChange(index, productId)
+                      }
+                      placeholder={t("purchaseOrders.selectProduct")}
+                    />
+                  </td>
+                  <td className="px-4 py-2">
+                    <input
+                      className={`${inputClass} w-24 ${exceedsStock ? "border-red-400 focus:border-red-500 focus:ring-red-500/10" : ""}`}
+                      min={1}
+                      onChange={(event) =>
+                        updateItem(index, {
+                          quantity: Number(event.target.value),
+                        })
+                      }
+                      type="number"
+                      value={item.quantity}
+                    />
+                    {exceedsStock && (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                        {t("salesOrders.insufficientStock", {
+                          available: product!.quantityInStock,
+                        })}
+                      </p>
+                    )}
+                  </td>
+                  <td className="px-4 py-2">
+                    <input
+                      className={`${inputClass} w-28`}
+                      min={0}
+                      onChange={(event) =>
+                        updateItem(index, {
+                          unitPrice: Number(event.target.value),
+                        })
+                      }
+                      step="0.01"
+                      type="number"
+                      value={item.unitPrice}
+                    />
+                  </td>
+                  <td className="px-4 py-2 text-slate-700 dark:text-slate-300">
+                    ${(item.quantity * item.unitPrice).toFixed(2)}
+                  </td>
+                  <td className="px-4 py-2">
+                    <button
+                      className="text-xs font-medium text-red-600 hover:underline dark:text-red-400 disabled:cursor-not-allowed disabled:opacity-40"
+                      disabled={items.length <= 1}
+                      onClick={() => removeRow(index)}
+                      type="button"
+                    >
+                      {t("common.delete")}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

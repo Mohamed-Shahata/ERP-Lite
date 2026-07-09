@@ -8,6 +8,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
+import { Sanitize } from '../../common/utils/sanitize.util';
 
 export class CreateProductDto {
   @IsString()
@@ -20,6 +21,7 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsString()
+  @Sanitize()
   description?: string;
 
   @IsUUID()

@@ -25,8 +25,11 @@ export function setAccessTokenCookie(
 }
 
 /**
- * Scoped to /auth so the refresh token is never sent on ordinary API calls —
- * it only travels on requests to /auth/refresh and /auth/logout.
+ * path: '/' (not scoped to /auth) so the Next.js middleware can see this
+ * cookie on ordinary page navigations (e.g. /dashboard) and let the request
+ * through while the access token is refreshed client-side. It's httpOnly
+ * either way, so this doesn't expose it to JS — it just widens which
+ * requests carry it.
  */
 export function setRefreshTokenCookie(
   res: Response,
@@ -37,12 +40,20 @@ export function setRefreshTokenCookie(
     httpOnly: true,
     secure: isProd,
     sameSite: 'lax',
-    path: '/auth',
+    path: '/',
     maxAge: maxAgeMs,
   });
 }
 
 export function clearAuthCookies(res: Response) {
   res.clearCookie(ACCESS_TOKEN_COOKIE, { path: '/' });
+  res.clearCookie(REFRESH_TOKEN_COOKIE, { path: '/' });
+
+  // Defensive: an earlier version of this code scoped the refresh cookie to
+  // path '/auth'. Browsers key cookies by (name, domain, path), so clients
+  // that logged in before the path was widened to '/' may still be carrying
+  // a stale '/auth'-scoped refresh_token alongside the current one. Clearing
+  // it here too purges that leftover instead of leaving it to shadow/collide
+  // with the real cookie on every /auth/* request.
   res.clearCookie(REFRESH_TOKEN_COOKIE, { path: '/auth' });
 }

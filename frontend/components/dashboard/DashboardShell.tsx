@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { logoutRequest, meRequest } from "@/lib/api/auth.api";
+import { getCompanySettingsRequest } from "@/lib/api/company-settings.api";
+import { resolveAssetUrl } from "@/lib/api/client";
 import { useAuthStore } from "@/lib/auth/auth-store";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
@@ -341,12 +344,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, setUser } = useAuthStore();
   const { t } = useTranslations();
+  const { data: company } = useQuery({
+    queryKey: ["company-settings"],
+    queryFn: getCompanySettingsRequest,
+  });
+  const brandName = company?.name || t("shell.brand");
+  const brandLogo = resolveAssetUrl(company?.logoUrl) || "/erp-system-logo.png";
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Desktop: collapses the sidebar down to icons-only.
   const [isCollapsed, setIsCollapsed] = useState(false);
-  // Mobile: fully opens/closes the sidebar as an off-canvas drawer.
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -400,14 +407,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           className={`flex items-center gap-3 ${isCollapsed ? "lg:justify-center" : ""}`}
         >
           <Image
-            src="/erp-system-logo.png"
-            alt="ERP Lite Logo"
+            src={brandLogo!}
+            alt={brandName}
             width={40}
             height={40}
+            className="h-10 w-10 shrink-0 rounded-lg object-cover"
+            unoptimized
           />
           <div className={isCollapsed ? "lg:hidden" : ""}>
             <p className="text-sm font-semibold text-slate-950 dark:text-white">
-              {t("shell.brand")}
+              {brandName}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {t("shell.workspace")}
@@ -517,7 +526,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               </button>
               <div className="hidden md:block">
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  {t("shell.brand")}
+                  {brandName}
                 </p>
                 <h1 className="text-lg font-semibold text-slate-950 dark:text-white">
                   {t("shell.controlCenter")}

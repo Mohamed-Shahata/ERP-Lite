@@ -18,6 +18,7 @@ import {
 } from './purchase-orders.repository';
 import { CacheService } from '../common/cache/cache.service';
 import { CACHE_PREFIX } from '../common/cache/cache-keys.constants';
+import { AuditLogService } from '../common/audit-log/audit-log.service';
 
 @Injectable()
 export class PurchaseOrdersService {
@@ -26,6 +27,7 @@ export class PurchaseOrdersService {
     private readonly suppliersService: SuppliersService,
     private readonly productsService: ProductsService,
     private readonly cache: CacheService,
+    private readonly auditLog: AuditLogService,
   ) {}
 
   async findAllPaginated(
@@ -51,11 +53,19 @@ export class PurchaseOrdersService {
     await this.suppliersService.findOne(dto.supplierId);
     await this.ensureProductsExist(dto.items.map((item) => item.productId));
 
-    return this.purchaseOrdersRepository.create({
+    const order = await this.purchaseOrdersRepository.create({
       supplierId: dto.supplierId,
       createdById,
       items: dto.items,
     });
+    void this.auditLog.log({
+      action: 'PURCHASE_ORDER_CREATED',
+      entityType: 'PurchaseOrder',
+      entityId: order.id,
+      userId: createdById,
+      metadata: { poNumber: order.poNumber },
+    });
+    return order;
   }
 
   async update(
@@ -114,6 +124,13 @@ export class PurchaseOrdersService {
       id,
       receivedById,
     );
+    void this.auditLog.log({
+      action: 'PURCHASE_ORDER_RECEIVED',
+      entityType: 'PurchaseOrder',
+      entityId: id,
+      userId: receivedById,
+      metadata: { poNumber: received.poNumber },
+    });
     this.cache.invalidatePrefix(CACHE_PREFIX.DASHBOARD_OVERVIEW);
     this.cache.invalidate(CACHE_PREFIX.REPORTS_INVENTORY);
     return received;

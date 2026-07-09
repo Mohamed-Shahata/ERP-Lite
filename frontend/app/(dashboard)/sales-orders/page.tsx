@@ -11,7 +11,10 @@ import {
 import { listCustomersRequest } from "@/lib/api/customers.api";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import { Pagination } from "@/components/ui/Pagination";
-import { SalesOrderItemsForm } from "@/components/sales-orders/SalesOrderItemsForm";
+import {
+  SalesOrderItemsForm,
+  findInsufficientStockItem,
+} from "@/components/sales-orders/SalesOrderItemsForm";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { SalesOrderStatusBadge } from "@/components/sales-orders/SalesOrderStatusBadge";
 import type { Product } from "@/types/product.types";
@@ -98,9 +101,21 @@ export default function SalesOrdersPage() {
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSaving(true);
     setMessage(null);
     setError(null);
+
+    const insufficientProduct = findInsufficientStockItem(
+      items.filter((i) => i.productId),
+      products,
+    );
+    if (insufficientProduct) {
+      setError(
+        t("salesOrders.insufficientStockError", { name: insufficientProduct }),
+      );
+      return;
+    }
+
+    setIsSaving(true);
     try {
       await createSalesOrderRequest({
         customerId,

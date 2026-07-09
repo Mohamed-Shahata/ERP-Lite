@@ -14,7 +14,8 @@ export const apiClient = axios.create({
 export function resolveAssetUrl(path: string | null | undefined) {
   if (!path) return null;
   if (/^(https?:|blob:|data:)/.test(path)) return path;
-  return `${process.env.NEXT_PUBLIC_API_URL ?? ""}${path}`;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${process.env.NEXT_PUBLIC_API_URL ?? ""}${normalizedPath}`;
 }
 
 function normalizeError(error: AxiosError<ApiErrorResponse>): Error {
@@ -48,6 +49,8 @@ async function tryRefresh(): Promise<boolean> {
   return refreshPromise;
 }
 
+console.log("api client created");
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiErrorResponse>) => {
@@ -59,6 +62,8 @@ apiClient.interceptors.response.use(
       originalRequest?.url?.includes("/auth/login") ||
       originalRequest?.url?.includes("/auth/refresh");
 
+    console.log(isAuthEndpoint);
+
     if (
       error.response?.status === 401 &&
       !isAuthEndpoint &&
@@ -67,6 +72,8 @@ apiClient.interceptors.response.use(
     ) {
       originalRequest._retried = true;
       const refreshed = await tryRefresh();
+
+      console.log(refreshed);
 
       if (refreshed) {
         return apiClient(originalRequest);

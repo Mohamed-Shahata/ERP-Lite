@@ -13,6 +13,7 @@ import { DashboardAlertBanners } from "@/components/dashboard/DashboardAlertBann
 import { DashboardRecentTables } from "@/components/dashboard/DashboardRecentTables";
 import { DashboardStockMovements } from "@/components/dashboard/DashboardStockMovements";
 import { DashboardStatCards } from "@/components/dashboard/DashboardStatCards";
+import { AdminDashboardCharts } from "@/components/dashboard/charts/AdminDashboardCharts";
 import { formatDashboardCurrency } from "@/components/dashboard/format-dashboard";
 import { useAuthStore } from "@/lib/auth/auth-store";
 import { useTranslations } from "@/lib/i18n/use-translations";
@@ -38,15 +39,20 @@ function isOverdueInvoice(invoice: InvoiceListItem): boolean {
   return new Date(invoice.dueDate) < new Date();
 }
 
+function monthLabel(date: Date, locale: string) {
+  return date.toLocaleDateString(locale, { month: "short" });
+}
+
 export default function DashboardPage() {
   const { t, dateLocale } = useTranslations();
   const user = useAuthStore((state) => state.user);
 
   const canViewStockMovements =
     user?.role === "ADMIN" || user?.role === "MANAGER";
+  const isAdmin = user?.role === "ADMIN";
 
   const { data, isLoading } = useQuery({
-    queryKey: ["dashboard", canViewStockMovements],
+    queryKey: ["dashboard", canViewStockMovements, isAdmin, dateLocale],
     queryFn: async () => {
       const [
         salesResult,
@@ -57,6 +63,8 @@ export default function DashboardPage() {
         allSalesResult,
         allPurchaseResult,
         movementsResult,
+        soldMovementsResult,
+        allCustomersResult,
       ] = await Promise.all([
         listSalesOrdersRequest({ page: 1, limit: 4 }),
         listPurchaseOrdersRequest({ page: 1, limit: 4 }),
@@ -68,7 +76,133 @@ export default function DashboardPage() {
         canViewStockMovements
           ? listStockMovementsRequest({ page: 1, limit: 5 })
           : Promise.resolve(null),
+        // Real "units sold" data for the Top Products / Revenue by Category
+        // charts: every OUT stock movement created by a sales order.
+        isAdmin
+          ? listStockMovementsRequest({
+              page: 1,
+              limit: 100,
+              type: "OUT",
+              referenceType: "SALES_ORDER",
+            })
+          : Promise.resolve(null),
+        isAdmin
+          ? listCustomersRequest({ page: 1, limit: 100 })
+          : Promise.resolve(null),
       ]);
+
+      // --- Sales Trend: real sales orders from the last 7 days ---
+      const salesTrend = (() => {
+        const now = new Date();
+        const days = Array.from({ length: 7 }, (_, i) => {
+          const d = new Date(now);
+          d.setDate(d.getDate() - (6 - i));
+          d.setHours(0, 0, 0, 0);
+          return d;
+        });
+        const totals = days.map(() => 0);
+        for (const order of allSalesResult.data) {
+          if (order.status !== "CONFIRMED") continue;
+          const created = new Date(order.createdAt);
+          created.setHours(0, 0, 0, 0);
+          const idx = days.findIndex((d) => d.getTime() === created.getTime());
+          if (idx !== -1) totals[idx] += Number(order.totalAmount);
+        }
+        return days.map((d, i) => ({
+          label: d.toLocaleDateString(dateLocale, { weekday: "short" }),
+          value: totals[i],
+        }));
+      })();
+
+      // --- Purchases vs Sales: real orders, last 4 months ---
+      const purchasesVsSales = (() => {
+        const now = new Date();
+        const months = Array.from({ length: 4 }, (_, i) => {
+          const d = new Date(now.getFullYear(), now.getMonth() - (3 - i), 1);
+          return d;
+        });
+        const sales = months.map(() => 0);
+        const purchases = months.map(() => 0);
+        for (const order of allSalesResult.data) {
+          if (order.status !== "CONFIRMED") continue;
+          const created = new Date(order.createdAt);
+          const idx = months.findIndex(
+            (m) =>
+              m.getFullYear() === created.getFullYear() &&
+              m.getMonth() === created.getMonth(),
+          );
+          if (idx !== -1) sales[idx] += Number(order.totalAmount);
+        }
+        for (const order of allPurchaseResult.data) {
+          if (order.status !== "RECEIVED") continue;
+          const created = new Date(order.createdAt);
+          const idx = months.findIndex(
+            (m) =>
+              m.getFullYear() === created.getFullYear() &&
+              m.getMonth() === created.getMonth(),
+          );
+          if (idx !== -1) purchases[idx] += Number(order.totalAmount);
+        }
+        return months.map((m, i) => ({
+          month: monthLabel(m, dateLocale),
+          sales: sales[i],
+          purchases: purchases[i],
+        }));
+      })();
+
+      // --- Top Products & Revenue by Category: real units sold (from
+      // stock movements) valued at each product's current sell price ---
+      const productById = new Map(productsResult.data.map((p) => [p.id, p]));
+      const soldMovements = soldMovementsResult?.data ?? [];
+
+      const quantityByProduct = new Map<string, number>();
+      const revenueByCategoryMap = new Map<string, number>();
+      for (const movement of soldMovements) {
+        quantityByProduct.set(
+          movement.product.name,
+          (quantityByProduct.get(movement.product.name) ?? 0) +
+            movement.quantity,
+        );
+        const product = productById.get(movement.productId);
+        if (product) {
+          const revenue = movement.quantity * Number(product.sellPrice);
+          const categoryName = product.category.name;
+          revenueByCategoryMap.set(
+            categoryName,
+            (revenueByCategoryMap.get(categoryName) ?? 0) + revenue,
+          );
+        }
+      }
+      const topProducts = Array.from(quantityByProduct.entries())
+        .map(([name, quantity]) => ({ name, quantity }))
+        .sort((a, b) => b.quantity - a.quantity)
+        .slice(0, 5);
+      const revenueByCategory = Array.from(revenueByCategoryMap.entries()).map(
+        ([name, value]) => ({ name, value: Math.round(value * 100) / 100 }),
+      );
+
+      // --- Customer Growth: real signups by month, last 4 months ---
+      const customerGrowth = (() => {
+        const now = new Date();
+        const months = Array.from({ length: 4 }, (_, i) => {
+          const d = new Date(now.getFullYear(), now.getMonth() - (3 - i), 1);
+          return d;
+        });
+        const counts = months.map(() => 0);
+        for (const customer of allCustomersResult?.data ?? []) {
+          const created = new Date(customer.createdAt);
+          const idx = months.findIndex(
+            (m) =>
+              m.getFullYear() === created.getFullYear() &&
+              m.getMonth() === created.getMonth(),
+          );
+          if (idx !== -1) counts[idx] += 1;
+        }
+        return months.map((m, i) => ({
+          month: monthLabel(m, dateLocale),
+          customers: counts[i],
+        }));
+      })();
 
       return {
         salesOrders: salesResult.data,
@@ -76,6 +210,7 @@ export default function DashboardPage() {
         totalProducts: productsResult.meta.total,
         totalCustomers: customersResult.meta.total,
         overdueInvoices: invoicesResult.data.filter(isOverdueInvoice),
+        invoices: invoicesResult.data,
         totalSales: allSalesResult.data
           .filter((order) => order.status === "CONFIRMED")
           .reduce((sum, order) => sum + Number(order.totalAmount), 0),
@@ -87,6 +222,11 @@ export default function DashboardPage() {
             product.isActive && product.quantityInStock <= product.reorderLevel,
         ),
         recentStockMovements: movementsResult?.data ?? [],
+        salesTrend,
+        purchasesVsSales,
+        topProducts,
+        revenueByCategory,
+        customerGrowth,
       };
     },
   });
@@ -99,7 +239,13 @@ export default function DashboardPage() {
   const totalPurchases = data?.totalPurchases ?? 0;
   const lowStockProducts = data?.lowStockProducts ?? [];
   const overdueInvoices = data?.overdueInvoices ?? [];
+  const invoices = data?.invoices ?? [];
   const recentStockMovements = data?.recentStockMovements ?? [];
+  const salesTrend = data?.salesTrend ?? [];
+  const purchasesVsSales = data?.purchasesVsSales ?? [];
+  const topProducts = data?.topProducts ?? [];
+  const revenueByCategory = data?.revenueByCategory ?? [];
+  const customerGrowth = data?.customerGrowth ?? [];
 
   const overdueAmount = useMemo(
     () =>
@@ -133,6 +279,7 @@ export default function DashboardPage() {
         </Link>
       </section>
 
+      {/* 1. Cards first */}
       <DashboardStatCards
         totalSales={totalSales}
         totalProducts={totalProducts}
@@ -171,6 +318,19 @@ export default function DashboardPage() {
         }}
       />
 
+      {/* 2. Charts (admin only) — all computed from real API data */}
+      {isAdmin && (
+        <AdminDashboardCharts
+          invoices={invoices}
+          salesTrend={salesTrend}
+          purchasesVsSales={purchasesVsSales}
+          topProducts={topProducts}
+          revenueByCategory={revenueByCategory}
+          customerGrowth={customerGrowth}
+        />
+      )}
+
+      {/* 3. Tables */}
       <DashboardRecentTables
         salesOrders={salesOrders}
         purchaseOrders={purchaseOrders}

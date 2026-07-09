@@ -12,7 +12,7 @@ import {
 } from "@/lib/api/products.api";
 import { useAuthStore } from "@/lib/auth/auth-store";
 import { useTranslations } from "@/lib/i18n/use-translations";
-import type { Category, Product } from "@/types/product.types";
+import type { Product } from "@/types/product.types";
 import { Pagination } from "@/components/ui/Pagination";
 
 const emptyProductForm: CreateProductPayload = {

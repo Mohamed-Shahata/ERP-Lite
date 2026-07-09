@@ -12,8 +12,8 @@ export interface CreatePaymentPayload {
 
 export async function createPaymentRequest(payload: CreatePaymentPayload) {
   const { data } = await apiClient.post<ApiResponse<InvoicePayment>>(
-    "/payments",
-    payload,
+    `/invoices/${payload.invoiceId}/payments`,
+    { amount: payload.amount, method: payload.method },
   );
   return data.data;
 }

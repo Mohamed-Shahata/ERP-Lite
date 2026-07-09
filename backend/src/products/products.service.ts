@@ -15,6 +15,7 @@ import {
 } from './products.repository';
 import { CacheService } from '../common/cache/cache.service';
 import { CACHE_PREFIX, CACHE_TTL } from '../common/cache/cache-keys.constants';
+import { AuditLogService } from '../common/audit-log/audit-log.service';
 
 @Injectable()
 export class ProductsService {
@@ -22,6 +23,7 @@ export class ProductsService {
     private readonly productsRepository: ProductsRepository,
     private readonly categoriesService: CategoriesService,
     private readonly cache: CacheService,
+    private readonly auditLog: AuditLogService,
   ) {}
 
   async findAll(): Promise<ProductWithCategory[]> {
@@ -47,7 +49,10 @@ export class ProductsService {
     return product;
   }
 
-  async create(dto: CreateProductDto): Promise<ProductWithCategory> {
+  async create(
+    dto: CreateProductDto,
+    actorId?: string,
+  ): Promise<ProductWithCategory> {
     await this.ensureSkuAvailable(dto.sku);
     // Throws NotFoundException if the category doesn't exist.
     await this.categoriesService.findOne(dto.categoryId);
@@ -62,6 +67,13 @@ export class ProductsService {
       reorderLevel: dto.reorderLevel,
       isActive: dto.isActive ?? true,
     });
+    void this.auditLog.log({
+      action: 'PRODUCT_CREATED',
+      entityType: 'Product',
+      entityId: product.id,
+      userId: actorId,
+      metadata: { sku: product.sku, name: product.name },
+    });
     this.invalidateProductCaches();
     return product;
   }
@@ -69,6 +81,7 @@ export class ProductsService {
   async update(
     id: string,
     dto: UpdateProductDto,
+    actorId?: string,
   ): Promise<ProductWithCategory> {
     await this.findOne(id);
 
@@ -96,13 +109,27 @@ export class ProductsService {
     };
 
     const updated = await this.productsRepository.update(id, data);
+    void this.auditLog.log({
+      action: 'PRODUCT_UPDATED',
+      entityType: 'Product',
+      entityId: id,
+      userId: actorId,
+      metadata: { changes: data },
+    });
     this.invalidateProductCaches();
     return updated;
   }
 
-  async remove(id: string): Promise<ProductWithCategory> {
+  async remove(id: string, actorId?: string): Promise<ProductWithCategory> {
     const product = await this.findOne(id);
     await this.productsRepository.delete(id);
+    void this.auditLog.log({
+      action: 'PRODUCT_DELETED',
+      entityType: 'Product',
+      entityId: id,
+      userId: actorId,
+      metadata: { sku: product.sku, name: product.name },
+    });
     this.invalidateProductCaches();
     return product;
   }

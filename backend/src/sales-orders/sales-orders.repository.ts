@@ -164,10 +164,11 @@ export class SalesOrdersRepository {
     });
   }
 
-  cancel(id: string): Promise<SalesOrder> {
+  cancel(id: string): Promise<SalesOrderDetail> {
     return this.prisma.salesOrder.update({
       where: { id },
       data: { status: SalesOrderStatus.CANCELLED },
+      include: detailInclude,
     });
   }
 

@@ -2,11 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { InvoiceDetail, InvoiceStatus } from "@/types/invoice.types";
 import type { CompanySettings } from "@/types/company-settings.types";
 import { getCompanySettingsRequest } from "@/lib/api/company-settings.api";
+import {
+  createPaymentRequest,
+  type PaymentMethod,
+} from "@/lib/api/payments.api";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import { PrintableInvoice } from "./PrintableInvoice";
+import { RecordPaymentModal } from "./RecordPaymentModal";
 
 interface InvoiceDetailViewProps {
   invoice: InvoiceDetail;
@@ -55,9 +61,25 @@ function formatCurrency(amount: string | number, dateLocale: string) {
 
 export function InvoiceDetailView({ invoice }: InvoiceDetailViewProps) {
   const { t, dateLocale } = useTranslations();
+  const queryClient = useQueryClient();
   const [company, setCompany] = useState<CompanySettings | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const remainingBalance =
     parseFloat(invoice.amount) - parseFloat(invoice.amountPaid);
+
+  const recordPayment = useMutation({
+    mutationFn: (vars: { amount: number; method: PaymentMethod }) =>
+      createPaymentRequest({
+        invoiceId: invoice.id,
+        amount: vars.amount,
+        method: vars.method,
+      }),
+    onSuccess: () => {
+      setIsPaymentModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["invoice", invoice.id] });
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+    },
+  });
 
   useEffect(() => {
     getCompanySettingsRequest()
@@ -301,8 +323,31 @@ export function InvoiceDetailView({ invoice }: InvoiceDetailViewProps) {
           >
             {t("invoices.printInvoice")}
           </button>
+          {remainingBalance > 0 && (
+            <button
+              type="button"
+              onClick={() => setIsPaymentModalOpen(true)}
+              className="px-6 py-2.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
+            >
+              {t("invoices.recordPayment")}
+            </button>
+          )}
         </div>
       </div>
+
+      <RecordPaymentModal
+        open={isPaymentModalOpen}
+        invoiceNumber={invoice.invoiceNumber}
+        remainingBalance={remainingBalance}
+        isSubmitting={recordPayment.isPending}
+        error={
+          recordPayment.error instanceof Error
+            ? recordPayment.error.message
+            : null
+        }
+        onSubmit={(amount, method) => recordPayment.mutate({ amount, method })}
+        onCancel={() => setIsPaymentModalOpen(false)}
+      />
 
       <PrintableInvoice
         invoice={invoice}

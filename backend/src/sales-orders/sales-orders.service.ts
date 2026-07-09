@@ -18,6 +18,7 @@ import {
 } from './sales-orders.repository';
 import { CacheService } from '../common/cache/cache.service';
 import { CACHE_PREFIX } from '../common/cache/cache-keys.constants';
+import { AuditLogService } from '../common/audit-log/audit-log.service';
 
 @Injectable()
 export class SalesOrdersService {
@@ -26,6 +27,7 @@ export class SalesOrdersService {
     private readonly customersService: CustomersService,
     private readonly productsService: ProductsService,
     private readonly cache: CacheService,
+    private readonly auditLog: AuditLogService,
   ) {}
 
   async findAllPaginated(
@@ -51,11 +53,19 @@ export class SalesOrdersService {
     await this.customersService.findOne(dto.customerId);
     await this.ensureProductsExist(dto.items.map((item) => item.productId));
 
-    return this.salesOrdersRepository.create({
+    const order = await this.salesOrdersRepository.create({
       customerId: dto.customerId,
       createdById,
       items: dto.items,
     });
+    void this.auditLog.log({
+      action: 'SALES_ORDER_CREATED',
+      entityType: 'SalesOrder',
+      entityId: order.id,
+      userId: createdById,
+      metadata: { orderNumber: order.orderNumber },
+    });
+    return order;
   }
 
   async update(
@@ -109,6 +119,13 @@ export class SalesOrdersService {
       id,
       confirmedById,
     );
+    void this.auditLog.log({
+      action: 'SALES_ORDER_CONFIRMED',
+      entityType: 'SalesOrder',
+      entityId: id,
+      userId: confirmedById,
+      metadata: { orderNumber: confirmed.orderNumber },
+    });
     this.cache.invalidatePrefix(CACHE_PREFIX.DASHBOARD_OVERVIEW);
     this.cache.invalidate(CACHE_PREFIX.REPORTS_SALES);
     this.cache.invalidate(CACHE_PREFIX.REPORTS_INVENTORY);

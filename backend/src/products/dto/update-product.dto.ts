@@ -8,6 +8,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
+import { Sanitize } from '../../common/utils/sanitize.util';
 
 export class UpdateProductDto {
   @IsOptional()
@@ -22,6 +23,7 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsString()
+  @Sanitize()
   description?: string;
 
   @IsOptional()

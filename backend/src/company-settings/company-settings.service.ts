@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { CompanySettings } from '../../generated/prisma/client';
+import { AuditLogService } from '../common/audit-log/audit-log.service';
 import { CompanySettingsRepository } from './company-settings.repository';
 import { UpdateCompanySettingsDto } from './dto/update-company-settings.dto';
 
@@ -9,7 +10,10 @@ import { UpdateCompanySettingsDto } from './dto/update-company-settings.dto';
 export class CompanySettingsService {
   private readonly logger = new Logger(CompanySettingsService.name);
 
-  constructor(private readonly repository: CompanySettingsRepository) {}
+  constructor(
+    private readonly repository: CompanySettingsRepository,
+    private readonly auditLog: AuditLogService,
+  ) {}
 
   async findOne(): Promise<CompanySettings> {
     return this.repository.findOrCreate();
@@ -18,11 +22,14 @@ export class CompanySettingsService {
   async update(
     dto: UpdateCompanySettingsDto,
     logoFile?: Express.Multer.File,
+    actorId?: string,
   ): Promise<CompanySettings> {
     const current = await this.repository.findOrCreate();
 
     const previousLogoUrl = current.logoUrl;
-    const logoUrl = logoFile ? `/uploads/logos/${logoFile.filename}` : current.logoUrl;
+    const logoUrl = logoFile
+      ? `/uploads/logos/${logoFile.filename}`
+      : current.logoUrl;
 
     const updated = await this.repository.update(current.id, {
       name: dto.name,
@@ -48,6 +55,14 @@ export class CompanySettingsService {
         this.logger.warn(`Could not remove old logo: ${error.message}`),
       );
     }
+
+    void this.auditLog.log({
+      action: 'COMPANY_SETTINGS_UPDATED',
+      entityType: 'CompanySettings',
+      entityId: updated.id,
+      userId: actorId,
+      metadata: { fields: Object.keys(dto) },
+    });
 
     return updated;
   }

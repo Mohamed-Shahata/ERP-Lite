@@ -177,6 +177,7 @@ export default function CompanySettingsPage() {
                   src={logoPreview}
                   alt=""
                   className="h-full w-full object-cover"
+                  onError={() => setLogoPreview(null)}
                 />
               ) : (
                 <span className="text-xs text-slate-400">

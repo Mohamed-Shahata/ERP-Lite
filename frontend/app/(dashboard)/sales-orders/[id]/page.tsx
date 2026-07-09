@@ -14,7 +14,10 @@ import {
 import { listCustomersRequest } from "@/lib/api/customers.api";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { SalesOrderItemsForm } from "@/components/sales-orders/SalesOrderItemsForm";
+import {
+  SalesOrderItemsForm,
+  findInsufficientStockItem,
+} from "@/components/sales-orders/SalesOrderItemsForm";
 import { SalesOrderStatusBadge } from "@/components/sales-orders/SalesOrderStatusBadge";
 import type { Product } from "@/types/product.types";
 import type { Customer } from "@/types/customer.types";
@@ -82,9 +85,21 @@ export default function SalesOrderDetailPage() {
   }
 
   async function handleSaveEdit() {
-    setIsSaving(true);
     setMessage(null);
     setError(null);
+
+    const insufficientProduct = findInsufficientStockItem(
+      editItems.filter((i) => i.productId),
+      products,
+    );
+    if (insufficientProduct) {
+      setError(
+        t("salesOrders.insufficientStockError", { name: insufficientProduct }),
+      );
+      return;
+    }
+
+    setIsSaving(true);
     try {
       const updated = await updateSalesOrderRequest(params.id, {
         customerId: editCustomerId,
@@ -198,7 +213,7 @@ export default function SalesOrderDetailPage() {
           </h2>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             {t("salesOrders.createdBy", {
-              name: order.createdBy.name,
+              name: order.createdBy?.name ?? "—",
               date: new Date(order.createdAt).toLocaleDateString(dateLocale),
             })}
           </p>

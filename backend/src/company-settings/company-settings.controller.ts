@@ -13,9 +13,11 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { randomUUID } from 'crypto';
 import { Role } from '../../generated/prisma/enums';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import type { CurrentUserPayload } from '../common/interfaces/current-user.interface';
 import { CompanySettingsService } from './company-settings.service';
 import { UpdateCompanySettingsDto } from './dto/update-company-settings.dto';
 
@@ -29,7 +31,9 @@ const ALLOWED_LOGO_TYPES = new Set([
 @Controller('company-settings')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CompanySettingsController {
-  constructor(private readonly companySettingsService: CompanySettingsService) {}
+  constructor(
+    private readonly companySettingsService: CompanySettingsService,
+  ) {}
 
   // Read access is open to any authenticated user: invoice printing, the
   // header, etc. all need currency/name/logo regardless of role.
@@ -67,8 +71,9 @@ export class CompanySettingsController {
   )
   update(
     @Body() dto: UpdateCompanySettingsDto,
+    @CurrentUser() user: CurrentUserPayload,
     @UploadedFile() logo?: Express.Multer.File,
   ) {
-    return this.companySettingsService.update(dto, logo);
+    return this.companySettingsService.update(dto, logo, user.id);
   }
 }

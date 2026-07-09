@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { listProductsRequest } from "@/lib/api/products.api";
 import {
+  createStockAdjustmentRequest,
   listStockMovementsRequest,
   type StockMovementListParams,
 } from "@/lib/api/stock-movements.api";
+import { AdjustStockModal } from "@/components/stock-movements/AdjustStockModal";
 import { Pagination } from "@/components/ui/Pagination";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import type { Product } from "@/types/product.types";
@@ -55,12 +57,41 @@ export default function StockMovementsPage() {
   const [to, setTo] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
+  const [isSubmittingAdjustment, setIsSubmittingAdjustment] = useState(false);
+  const [adjustError, setAdjustError] = useState<string | null>(null);
 
-  useEffect(() => {
+  function reloadProducts() {
     listProductsRequest({ page: 1, limit: 100 })
       .then((result) => setProducts(result.data))
       .catch(() => setProducts([]));
+  }
+
+  useEffect(() => {
+    reloadProducts();
   }, []);
+
+  async function handleCreateAdjustment(payload: {
+    productId: string;
+    quantity: number;
+    note?: string;
+  }) {
+    setIsSubmittingAdjustment(true);
+    setAdjustError(null);
+    try {
+      await createStockAdjustmentRequest(payload);
+      setIsAdjustModalOpen(false);
+      setReloadKey((key) => key + 1);
+      reloadProducts();
+    } catch (err) {
+      setAdjustError(
+        err instanceof Error ? err.message : t("stockMovements.adjustError"),
+      );
+    } finally {
+      setIsSubmittingAdjustment(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -98,7 +129,7 @@ export default function StockMovementsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, limit, productId, type, referenceType, from, to]);
+  }, [page, limit, productId, type, referenceType, from, to, reloadKey]);
 
   function resetPage() {
     setPage(1);
@@ -106,13 +137,25 @@ export default function StockMovementsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">
-          {t("stockMovements.title")}
-        </h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          {t("stockMovements.summary", { count: total })}
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">
+            {t("stockMovements.title")}
+          </h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            {t("stockMovements.summary", { count: total })}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setAdjustError(null);
+            setIsAdjustModalOpen(true);
+          }}
+          className="h-10 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700"
+        >
+          {t("stockMovements.adjustTitle")}
+        </button>
       </div>
 
       <div className="flex flex-wrap gap-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
@@ -285,6 +328,15 @@ export default function StockMovementsPage() {
           onPageSizeChange={setLimit}
         />
       </div>
+
+      <AdjustStockModal
+        open={isAdjustModalOpen}
+        products={products}
+        isSubmitting={isSubmittingAdjustment}
+        error={adjustError}
+        onSubmit={handleCreateAdjustment}
+        onCancel={() => setIsAdjustModalOpen(false)}
+      />
     </div>
   );
 }

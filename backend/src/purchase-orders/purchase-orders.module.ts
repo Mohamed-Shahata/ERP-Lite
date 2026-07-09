@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ProductsModule } from '../products/products.module';
 import { SuppliersModule } from '../suppliers/suppliers.module';
+import { AuditLogModule } from '../common/audit-log/audit-log.module';
 import { PurchaseOrdersController } from './purchase-orders.controller';
 import { PurchaseOrdersRepository } from './purchase-orders.repository';
 import { PurchaseOrdersService } from './purchase-orders.service';
 
 @Module({
-  imports: [SuppliersModule, ProductsModule],
+  imports: [SuppliersModule, ProductsModule, AuditLogModule],
   controllers: [PurchaseOrdersController],
   providers: [PurchaseOrdersService, PurchaseOrdersRepository],
   exports: [PurchaseOrdersService],

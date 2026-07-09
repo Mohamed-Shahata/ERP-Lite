@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
@@ -17,9 +19,14 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { StockMovementsModule } from './stock-movements/stock-movements.module';
 import { CompanySettingsModule } from './company-settings/company-settings.module';
 import { CacheModule } from './common/cache/cache.module';
+import { ReportsModule } from './reports/reports.module';
+import { AuditLogModule } from './common/audit-log/audit-log.module';
 
 @Module({
   imports: [
+    // Default request budget for every route (login has its own, stricter
+    // limit set with @Throttle on the controller).
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     PrismaModule,
     ConfigModule,
     AuthModule,
@@ -36,8 +43,10 @@ import { CacheModule } from './common/cache/cache.module';
     DashboardModule,
     CompanySettingsModule,
     CacheModule,
+    ReportsModule,
+    AuditLogModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

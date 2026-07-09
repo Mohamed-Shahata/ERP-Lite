@@ -56,6 +56,20 @@ enum ReferenceType {
   MANUAL
 }
 
+model AuditLog {
+  id         String   @id @default(uuid())
+  action     String
+  entityType String
+  entityId   String?
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+}
+
 model User{
   id                       String           @id @default(uuid())
   name                     String
@@ -72,6 +86,7 @@ model User{
   salesOrders              SalesOrder[]
   payments                 Payment[]
   stockMovements           StockMovement[]
+  auditLogs                AuditLog[]
 
 
   refreshTokens RefreshToken[]
