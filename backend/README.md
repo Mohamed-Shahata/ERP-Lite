@@ -1,98 +1,173 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# ERP Lite — Backend API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Prisma%207-4169E1?logo=postgresql&logoColor=white)
+![Auth](https://img.shields.io/badge/Auth-JWT%20%2B%20Rotating%20Refresh%20Tokens-black)
+![Security](https://img.shields.io/badge/Security-Helmet%20%7C%20RBAC%20%7C%20Rate%20Limited-success)
+![Docs](https://img.shields.io/badge/Docs-Swagger-85EA2D?logo=swagger&logoColor=black)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+**A production-style, modular REST API for a full ERP: suppliers → purchasing → stock → sales → invoicing → payments — with real security engineering behind it, not a tutorial project.**
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Why this backend is built the way it is
 
-## Project setup
+Most portfolio APIs stop at "CRUD + JWT." This one is built the way a backend for a real company would be: every domain is isolated into its own module, every layer has one job, every sensitive action is auditable, and every request goes through the same hardened pipeline before it touches business logic.
 
-```bash
-$ npm install
+---
+
+## 🏗️ Architecture — Strict Layered Design
+
+Every one of the 14 business modules (Suppliers, Products, Categories, Purchase Orders, Sales Orders, Customers, Invoices, Payments, Stock Movements, Reports, Dashboard, Users, Company Settings, Content Pages) follows the **exact same three-layer contract** — no exceptions, no shortcuts:
+
+```mermaid
+flowchart TD
+    A["🎮 Controller\nHTTP routes · Guards · DTO validation · Swagger decorators"] --> B["⚙️ Service\nBusiness rules · Transactions · Cache invalidation · Audit logging"]
+    B --> C["🗄️ Repository\nThe ONLY layer allowed to import Prisma"]
+    C --> D[("PostgreSQL")]
 ```
 
-## Compile and run the project
+**Why this matters:** the Controller never knows Prisma exists. The Service never writes raw SQL. If the database ever needs to change, only the Repository layer moves. This is the same discipline used in enterprise .NET/Spring codebases, applied to NestJS.
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```
+src/
+├── auth/                 # Login, refresh rotation, password reset, Passport JWT strategy
+├── users/                # User CRUD, activation/deactivation, role assignment
+├── categories/ products/ # Product catalog
+├── suppliers/ purchase-orders/
+├── customers/ sales-orders/
+├── invoices/ payments/
+├── stock-movements/      # Signed-quantity adjustments with audit trail
+├── reports/              # Cached aggregate reporting + PDF/Excel export
+├── dashboard/            # Live KPIs
+├── company-settings/     # Logo, currency, invoice numbering
+├── content-pages/        # Admin-editable Help/Privacy/Terms via sanitized rich text
+└── common/
+    ├── audit-log/        # Who did what, when, before/after
+    ├── cache/             # In-memory TTL cache — CacheService
+    ├── cookies/           # httpOnly cookie helpers
+    ├── decorators/        # @Roles(), @CurrentUser()
+    ├── guards/            # JwtAuthGuard, RolesGuard
+    ├── filters/           # Global exception → consistent error shape
+    ├── interceptors/       # Response envelope, request logging
+    ├── pipes/             # Global ValidationPipe (whitelist: true)
+    └── utils/             # paginate(), @Sanitize()
 ```
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ npm run test
+## 🔐 Security — Built like it's going to production
 
-# e2e tests
-$ npm run test:e2e
+This is the part I'm proudest of. Nothing here is decorative — every mechanism below solves a real attack vector.
 
-# test coverage
-$ npm run test:cov
+### Token model: no `localStorage`, ever
+
+| Token             | Lifetime | Storage                                                        | Why                                                          |
+| ----------------- | -------- | -------------------------------------------------------------- | ------------------------------------------------------------ |
+| **Access token**  | 15 min   | `httpOnly`, `sameSite=lax` cookie                              | Invisible to JavaScript → immune to XSS token theft          |
+| **Refresh token** | 7 days   | Opaque random value; only its **SHA-256 hash** lives in the DB | A leaked database alone can never be used to forge a session |
+
+### Rotation + theft detection
+
+On every refresh, the old token is **immediately revoked** and replaced. If a client ever presents an already-rotated token, that's a replay attack signature — a real client would never do that, so it's treated as a compromise signal. Changing a password calls `revokeAllRefreshTokensForUser`, instantly kicking every other active session.
+
+### Request pipeline (every single request passes through all of this, in order)
+
+```mermaid
+flowchart LR
+    R["Incoming Request"] --> H["Helmet\nsecure headers"] --> CO["CORS allow-list"] --> T["ThrottlerGuard\nrate limiting"] --> J["JwtAuthGuard\nverify cookie + re-check user is active in DB"] --> RG["RolesGuard\n@Roles(...) RBAC"] --> V["ValidationPipe\nwhitelist: true, strips unknown fields"] --> S["@Sanitize()\nstrips HTML from free-text fields"] --> BL["Controller → Service → Repository"]
 ```
 
-## Deployment
+- **Helmet** — secure headers (CSP-related, `X-Content-Type-Options`, etc.) on every response.
+- **Strict CORS allow-list** — only the configured frontend origin can send credentialed requests.
+- **Rate limiting (`@nestjs/throttler`)** — 100 req/min globally, with a much stricter dedicated limit on `/auth/login` to blunt brute-force attempts.
+- **RBAC (`RolesGuard` + `@Roles(...)`)** — fine-grained per-route access control, checked _after_ authentication, not instead of it.
+- **Live user re-check** — `JwtAuthGuard` re-verifies the user still exists and is active on _every single request_, so deactivating a user takes effect immediately — not when their token happens to expire.
+- **Input sanitization** — a reusable `@Sanitize()` decorator strips HTML from any free-text DTO field (notes, addresses, rich-text content pages), preventing stored XSS even in admin-editable content.
+- **Password security** — bcrypt (10 salt rounds) for both login passwords and refresh-token hashes.
+- **Mass-assignment protection** — the global `ValidationPipe` with `whitelist: true` silently drops any field not explicitly declared in a DTO.
+- **Audit Log** — every sensitive mutation (create/update/delete, stock adjustments, settings changes) is recorded with actor, action, entity, and before/after diff.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## ⚡ Caching — a real cache-aside layer, no Redis needed (yet)
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+Instead of pulling in Redis for a single-instance deployment, the backend ships a small, dependency-free **in-memory TTL cache** registered as a **global NestJS provider**, so any module can inject it with zero extra setup.
+
+```ts
+class CacheService {
+  get<T>(key): T | undefined;
+  set<T>(key, value, ttlMs): void;
+  getOrSet<T>(key, ttlMs, loader): Promise<T>; // cache-aside pattern
+  invalidate(key): void;
+  invalidatePrefix(prefix): void; // bulk-clear a namespace
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+| Data                                         | TTL   | Why                                                 |
+| -------------------------------------------- | ----- | --------------------------------------------------- |
+| Dashboard overview                           | 1 min | Near-real-time operational numbers                  |
+| Product/category/supplier/customer lists     | 1 min | Frequently browsed, cheap to refresh                |
+| Reports (sales/purchases/inventory/payments) | 5 min | Heavy aggregate queries — safe to be slightly stale |
 
-## Resources
+All keys and TTLs live in one file (`cache-keys.constants.ts`), so writer modules (Products, Suppliers…) and reader modules (Reports, Dashboard) always agree on exactly what to invalidate. Because every module talks to the same `CacheService` interface, swapping in Redis later for horizontal scaling is a one-file change — not a rewrite.
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 📦 Business Domain — the full ERP cycle
 
-## Support
+```mermaid
+flowchart LR
+    SUP["Suppliers"] --> PO["Purchase Orders"] --> SM["Stock Movements"] --> SO["Sales Orders"] --> INV["Invoices"] --> PAY["Payments"]
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Every entity is status-tracked (`PENDING → APPROVED → PAID`, etc.), and stock adjustments require a signed quantity, a mandatory note, and floor-quantity validation — with automatic audit logging on every change.
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 🛠️ Tech Stack
 
-## License
+| Layer      | Technology                                                      |
+| ---------- | --------------------------------------------------------------- |
+| Framework  | NestJS 11 (Express platform)                                    |
+| Language   | TypeScript (strict)                                             |
+| Database   | PostgreSQL                                                      |
+| ORM        | Prisma 7 with `@prisma/adapter-pg` driver adapter               |
+| Auth       | JWT (access + refresh) via Passport.js                          |
+| Validation | `class-validator` / `class-transformer`                         |
+| Security   | Helmet, CORS allow-list, `@nestjs/throttler`, HTML sanitization |
+| API Docs   | Swagger (`@nestjs/swagger`)                                     |
+| Mail       | Nodemailer                                                      |
+| Uploads    | Multer                                                          |
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+---
+
+## 🚀 Getting Started
+
+```bash
+# install
+npm install
+
+# configure environment
+cp .env.example .env
+# set DATABASE_URL, JWT_SECRET, FRONTEND_ORIGIN, SMTP_* ...
+
+# run migrations
+npx prisma migrate dev
+
+# start
+npm run start:dev
+```
+
+API docs available at `/api/docs` once the server is running (Swagger UI).
+
+---
+
+## ✅ What this project demonstrates
+
+- Real layered architecture, enforced consistently across 14 domain modules — not just one demo module.
+- Security that goes beyond "add a JWT guard": rotation, theft detection, live user re-verification, sanitization, rate limiting, RBAC.
+- A caching strategy with a clear invalidation contract, designed to scale to Redis without a rewrite.
+- Full audit trail for compliance-style traceability.
+- Clean separation of concerns that makes the codebase testable and onboarding-friendly for new engineers.
