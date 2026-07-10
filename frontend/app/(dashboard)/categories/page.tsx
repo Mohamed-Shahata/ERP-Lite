@@ -9,6 +9,7 @@ import {
   updateCategoryRequest,
 } from "@/lib/api/categories.api";
 import { Pagination } from "@/components/ui/Pagination";
+import { Modal } from "@/components/ui/Modal";
 import { useAuthStore } from "@/lib/auth/auth-store";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import type { Category } from "@/types/product.types";
@@ -115,6 +116,7 @@ export default function CategoriesPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const [categoryForm, setCategoryForm] = useState({
     name: "",
@@ -177,6 +179,7 @@ export default function CategoriesPage() {
       });
       setCategoryForm({ name: "", description: "" });
       setMessage(t("categories.created"));
+      setIsCreateModalOpen(false);
       await invalidateCategories();
     } catch (err) {
       setError(
@@ -264,7 +267,11 @@ export default function CategoriesPage() {
               {t("categories.title")}
             </h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              {t("categories.summary", { count: totalCategories })}
+              {t("categories.summary", {
+                count: new Intl.NumberFormat(dateLocale).format(
+                  totalCategories,
+                ),
+              })}
               {!canManage && t("common.readOnlyAccess")}
             </p>
           </div>
@@ -293,13 +300,11 @@ export default function CategoriesPage() {
 
       <div className="space-y-6">
         {canManage && (
-          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-            <div className="mb-5 flex items-center justify-between">
-              <h3 className="text-base font-semibold text-slate-950 dark:text-white">
-                {t("categories.addCategory")}
-              </h3>
-            </div>
-
+          <Modal
+            open={isCreateModalOpen}
+            onClose={() => setIsCreateModalOpen(false)}
+            title={t("categories.addCategory")}
+          >
             <form onSubmit={handleCreateCategory} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
@@ -358,7 +363,7 @@ export default function CategoriesPage() {
                 {t("categories.addCategory")}
               </button>
             </form>
-          </section>
+          </Modal>
         )}
 
         {/* Table */}
@@ -367,16 +372,28 @@ export default function CategoriesPage() {
             <h3 className="text-base font-semibold text-slate-950 dark:text-white">
               {t("categories.allCategories")}
             </h3>
-            <div className="relative">
-              <span className="pointer-events-none absolute inset-y-0 inset-s-3 flex items-center text-slate-400 dark:text-slate-500">
-                <SearchIcon />
-              </span>
-              <input
-                className="h-9 w-48 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 ps-9 pe-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:text-white"
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder={t("categories.searchPlaceholder")}
-                value={searchTerm}
-              />
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 inset-s-3 flex items-center text-slate-400 dark:text-slate-500">
+                  <SearchIcon />
+                </span>
+                <input
+                  className="h-9 w-48 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 ps-9 pe-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:text-white"
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder={t("categories.searchPlaceholder")}
+                  value={searchTerm}
+                />
+              </div>
+              {canManage && (
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-3 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  <PlusIcon />
+                  {t("categories.addCategory")}
+                </button>
+              )}
             </div>
           </div>
 

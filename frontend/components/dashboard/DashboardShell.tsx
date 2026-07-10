@@ -395,7 +395,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       )}
 
       <aside
-        className={`fixed inset-y-0 inset-s-0 z-40 flex w-72 flex-col border-e border-slate-200 bg-white px-5 py-6 transition-all duration-200 dark:border-slate-800 dark:bg-slate-900 lg:translate-x-0 lg:rtl:translate-x-0 ${
+        className={`print:hidden fixed inset-y-0 inset-s-0 z-40 flex w-72 flex-col border-e border-slate-200 bg-white px-5 py-6 transition-all duration-200 dark:border-slate-800 dark:bg-slate-900 lg:translate-x-0 lg:rtl:translate-x-0 ${
           isCollapsed ? "lg:w-20 lg:px-3" : "lg:w-72"
         } ${
           isMobileOpen
@@ -511,9 +511,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div
-        className={`transition-all duration-200 ${isCollapsed ? "lg:ps-20" : "lg:ps-72"}`}
+        className={`print:ps-0 transition-all duration-200 ${isCollapsed ? "lg:ps-20" : "lg:ps-72"}`}
       >
-        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90 lg:px-8">
+        <header className="print:hidden sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90 lg:px-8">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <button
@@ -554,6 +554,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <main className="px-4 py-6 lg:px-8">{children}</main>
+
+        <footer className="print:hidden border-t border-slate-200 px-4 py-4 text-xs text-slate-400 dark:border-slate-800 dark:text-slate-500 lg:px-8">
+          <Link
+            href="/legal/teams"
+            className="transition-colors hover:text-slate-600 dark:hover:text-slate-300"
+          >
+            {t("shell.teams")}
+          </Link>
+        </footer>
       </div>
 
       <ConfirmDialog

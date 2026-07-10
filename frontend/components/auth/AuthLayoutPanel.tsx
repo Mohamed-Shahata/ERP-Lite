@@ -4,6 +4,7 @@ import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import Image from "next/image";
+import Link from "next/link";
 
 function HelpIcon() {
   return (
@@ -107,14 +108,14 @@ export function AuthLayoutPanel({ children }: { children: React.ReactNode }) {
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            type="button"
+          <Link
+            href="/legal/help"
             title={t("authLayout.help")}
             className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 text-slate-500 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
           >
             <span className="sr-only">{t("authLayout.help")}</span>
             <HelpIcon />
-          </button>
+          </Link>
           <LanguageSwitcher />
           <ThemeToggle />
         </div>
@@ -166,24 +167,24 @@ export function AuthLayoutPanel({ children }: { children: React.ReactNode }) {
       <footer className="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:text-slate-400">
         <p>{t("authLayout.copyright", { year: String(year) })}</p>
         <div className="flex items-center gap-4">
-          <a
-            href="#"
+          <Link
+            href="/legal/privacy"
             className="transition-colors hover:text-slate-700 dark:hover:text-slate-200"
           >
             {t("authLayout.privacyPolicy")}
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            href="/legal/terms"
             className="transition-colors hover:text-slate-700 dark:hover:text-slate-200"
           >
             {t("authLayout.termsOfUse")}
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            href="/legal/support"
             className="transition-colors hover:text-slate-700 dark:hover:text-slate-200"
           >
             {t("authLayout.support")}
-          </a>
+          </Link>
         </div>
       </footer>
     </div>

@@ -71,3 +71,14 @@ export const ReferenceType = {
 } as const
 
 export type ReferenceType = (typeof ReferenceType)[keyof typeof ReferenceType]
+
+
+export const PageSlug = {
+  HELP: 'HELP',
+  PRIVACY: 'PRIVACY',
+  TERMS: 'TERMS',
+  SUPPORT: 'SUPPORT',
+  TEAMS: 'TEAMS'
+} as const
+
+export type PageSlug = (typeof PageSlug)[keyof typeof PageSlug]

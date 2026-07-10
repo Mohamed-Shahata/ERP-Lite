@@ -104,7 +104,9 @@ function AlertBanner({
         <p className={`text-sm font-bold sm:text-base ${styles.title}`}>
           {title}
         </p>
-        <p className={`mt-1 text-xs leading-5 sm:text-sm ${styles.description}`}>
+        <p
+          className={`mt-1 text-xs leading-5 sm:text-sm ${styles.description}`}
+        >
           {description}
         </p>
       </div>
@@ -116,10 +118,12 @@ function AlertBanner({
 export function DashboardAlertBanners({
   lowStockCount,
   overdueCount,
+  singleOverdueInvoiceId,
   labels,
 }: {
   lowStockCount: number;
   overdueCount: number;
+  singleOverdueInvoiceId?: string;
   labels: {
     stockTitle: string;
     stockDescription: string;
@@ -131,11 +135,16 @@ export function DashboardAlertBanners({
     return null;
   }
 
+  const overdueHref =
+    overdueCount === 1 && singleOverdueInvoiceId
+      ? `/invoices/${singleOverdueInvoiceId}`
+      : "/invoices?overdue=true";
+
   return (
     <section className="grid gap-4 lg:grid-cols-2">
       {lowStockCount > 0 && (
         <AlertBanner
-          href="/products"
+          href="/products?stockFilter=low"
           title={labels.stockTitle}
           description={labels.stockDescription}
           icon={<WarningIcon />}
@@ -144,7 +153,7 @@ export function DashboardAlertBanners({
       )}
       {overdueCount > 0 && (
         <AlertBanner
-          href="/invoices"
+          href={overdueHref}
           title={labels.overdueTitle}
           description={labels.overdueDescription}
           icon={<InvoiceIcon />}

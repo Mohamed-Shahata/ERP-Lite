@@ -47,39 +47,58 @@ export function DashboardStockMovements({
         <table className="min-w-full text-sm">
           <thead>
             <tr className="border-b border-slate-100 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
-              <th className="px-5 py-3 text-start font-medium">{labels.product}</th>
-              <th className="px-5 py-3 text-start font-medium">{labels.type}</th>
-              <th className="px-5 py-3 text-start font-medium">{labels.quantity}</th>
-              <th className="px-5 py-3 text-start font-medium">{labels.date}</th>
+              <th className="px-5 py-3 text-start font-medium">
+                {labels.product}
+              </th>
+              <th className="px-5 py-3 text-start font-medium">
+                {labels.type}
+              </th>
+              <th className="px-5 py-3 text-start font-medium">
+                {labels.quantity}
+              </th>
+              <th className="px-5 py-3 text-start font-medium">
+                {labels.date}
+              </th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={4} className="px-5 py-8 text-center text-slate-500 dark:text-slate-400">
+                <td
+                  colSpan={4}
+                  className="px-5 py-8 text-center text-slate-500 dark:text-slate-400"
+                >
                   ...
                 </td>
               </tr>
             ) : movements.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-5 py-8 text-center text-slate-500 dark:text-slate-400">
+                <td
+                  colSpan={4}
+                  className="px-5 py-8 text-center text-slate-500 dark:text-slate-400"
+                >
                   {labels.empty}
                 </td>
               </tr>
             ) : (
               movements.map((movement) => (
-                <tr key={movement.id} className="border-b border-slate-50 last:border-0 dark:border-slate-800/60">
+                <tr
+                  key={movement.id}
+                  className="border-b border-slate-50 last:border-0 dark:border-slate-800/60"
+                >
                   <td className="px-5 py-3.5 font-medium text-slate-900 dark:text-white">
                     {movement.product.name}
                   </td>
                   <td className="px-5 py-3.5">
-                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${TYPE_STYLES[movement.type]}`}>
+                    <span
+                      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${TYPE_STYLES[movement.type]}`}
+                    >
                       {typeLabels[movement.type]}
                     </span>
                   </td>
                   <td className="px-5 py-3.5 text-slate-600 dark:text-slate-300">
                     {movement.type === "OUT" ? "-" : "+"}
-                    {movement.quantity}
+                    {new Intl.NumberFormat(locale).format(movement.quantity)}
                   </td>
                   <td className="px-5 py-3.5 text-slate-600 dark:text-slate-300">
                     {new Date(movement.createdAt).toLocaleDateString(locale)}

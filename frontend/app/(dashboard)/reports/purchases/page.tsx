@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "@/lib/i18n/use-translations";
@@ -10,6 +10,7 @@ import { listSuppliersRequest } from "@/lib/api/suppliers.api";
 import { DateRangeFilter } from "@/components/reports/DateRangeFilter";
 import { ExportButtons } from "@/components/reports/ExportButtons";
 import { formatReportCurrency } from "@/components/reports/InvoiceReportTable";
+import { Pagination, paginate } from "@/components/ui/Pagination";
 import { PurchaseOrderStatusBadge } from "@/components/purchase-orders/PurchaseOrderStatusBadge";
 import { exportRowsToExcel, exportRowsToPdf } from "@/lib/utils/export";
 import type {
@@ -32,6 +33,8 @@ export default function PurchaseReportPage() {
   });
   const [supplierId, setSupplierId] = useState("");
   const [status, setStatus] = useState<PurchaseOrderStatus | "">("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: suppliers = [] } = useQuery({
     queryKey: ["suppliers", "all"],
@@ -63,6 +66,12 @@ export default function PurchaseReportPage() {
       ? queryError.message
       : t("reports.loadError")
     : null;
+
+  useEffect(() => {
+    setPage(1);
+  }, [range.from, range.to, supplierId, status]);
+
+  const paginatedOrders = paginate(orders, page, pageSize);
 
   const exportColumns = [
     {
@@ -177,53 +186,64 @@ export default function PurchaseReportPage() {
             {t("reports.empty")}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-160 text-start text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800 text-xs uppercase text-slate-500 dark:text-slate-400">
-                <tr>
-                  <th className="px-5 py-3 text-start font-semibold">
-                    {t("reports.columns.poNumber")}
-                  </th>
-                  <th className="px-5 py-3 text-start font-semibold">
-                    {t("reports.columns.supplier")}
-                  </th>
-                  <th className="px-5 py-3 text-start font-semibold">
-                    {t("reports.columns.total")}
-                  </th>
-                  <th className="px-5 py-3 text-start font-semibold">
-                    {t("common.status")}
-                  </th>
-                  <th className="px-5 py-3 text-start font-semibold">
-                    {t("reports.columns.date")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                {orders.map((order) => (
-                  <tr key={order.id}>
-                    <td className="px-5 py-3 font-medium text-slate-950 dark:text-white">
-                      {order.poNumber}
-                    </td>
-                    <td className="px-5 py-3 text-slate-700 dark:text-slate-300">
-                      {order.supplier.name}
-                    </td>
-                    <td className="px-5 py-3 text-slate-700 dark:text-slate-300">
-                      {formatReportCurrency(order.totalAmount, dateLocale)}
-                    </td>
-                    <td className="px-5 py-3">
-                      <PurchaseOrderStatusBadge
-                        status={order.status}
-                        label={t(`purchaseOrders.status.${order.status}`)}
-                      />
-                    </td>
-                    <td className="px-5 py-3 text-slate-500 dark:text-slate-400">
-                      {new Date(order.createdAt).toLocaleDateString(dateLocale)}
-                    </td>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-160 text-start text-sm">
+                <thead className="bg-slate-50 dark:bg-slate-800 text-xs uppercase text-slate-500 dark:text-slate-400">
+                  <tr>
+                    <th className="px-5 py-3 text-start font-semibold">
+                      {t("reports.columns.poNumber")}
+                    </th>
+                    <th className="px-5 py-3 text-start font-semibold">
+                      {t("reports.columns.supplier")}
+                    </th>
+                    <th className="px-5 py-3 text-start font-semibold">
+                      {t("reports.columns.total")}
+                    </th>
+                    <th className="px-5 py-3 text-start font-semibold">
+                      {t("common.status")}
+                    </th>
+                    <th className="px-5 py-3 text-start font-semibold">
+                      {t("reports.columns.date")}
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                  {paginatedOrders.map((order) => (
+                    <tr key={order.id}>
+                      <td className="px-5 py-3 font-medium text-slate-950 dark:text-white">
+                        {order.poNumber}
+                      </td>
+                      <td className="px-5 py-3 text-slate-700 dark:text-slate-300">
+                        {order.supplier.name}
+                      </td>
+                      <td className="px-5 py-3 text-slate-700 dark:text-slate-300">
+                        {formatReportCurrency(order.totalAmount, dateLocale)}
+                      </td>
+                      <td className="px-5 py-3">
+                        <PurchaseOrderStatusBadge
+                          status={order.status}
+                          label={t(`purchaseOrders.status.${order.status}`)}
+                        />
+                      </td>
+                      <td className="px-5 py-3 text-slate-500 dark:text-slate-400">
+                        {new Date(order.createdAt).toLocaleDateString(
+                          dateLocale,
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pagination
+              currentPage={page}
+              pageSize={pageSize}
+              totalItems={orders.length}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          </>
         )}
       </section>
     </div>

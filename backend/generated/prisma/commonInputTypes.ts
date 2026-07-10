@@ -372,6 +372,23 @@ export type EnumReferenceTypeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumReferenceTypeFilter<$PrismaModel>
 }
 
+export type EnumPageSlugFilter<$PrismaModel = never> = {
+  equals?: $Enums.PageSlug | Prisma.EnumPageSlugFieldRefInput<$PrismaModel>
+  in?: $Enums.PageSlug[] | Prisma.ListEnumPageSlugFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PageSlug[] | Prisma.ListEnumPageSlugFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPageSlugFilter<$PrismaModel> | $Enums.PageSlug
+}
+
+export type EnumPageSlugWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PageSlug | Prisma.EnumPageSlugFieldRefInput<$PrismaModel>
+  in?: $Enums.PageSlug[] | Prisma.ListEnumPageSlugFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PageSlug[] | Prisma.ListEnumPageSlugFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPageSlugWithAggregatesFilter<$PrismaModel> | $Enums.PageSlug
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPageSlugFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPageSlugFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -714,6 +731,23 @@ export type NestedEnumReferenceTypeWithAggregatesFilter<$PrismaModel = never> = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumReferenceTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumReferenceTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumPageSlugFilter<$PrismaModel = never> = {
+  equals?: $Enums.PageSlug | Prisma.EnumPageSlugFieldRefInput<$PrismaModel>
+  in?: $Enums.PageSlug[] | Prisma.ListEnumPageSlugFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PageSlug[] | Prisma.ListEnumPageSlugFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPageSlugFilter<$PrismaModel> | $Enums.PageSlug
+}
+
+export type NestedEnumPageSlugWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PageSlug | Prisma.EnumPageSlugFieldRefInput<$PrismaModel>
+  in?: $Enums.PageSlug[] | Prisma.ListEnumPageSlugFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PageSlug[] | Prisma.ListEnumPageSlugFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPageSlugWithAggregatesFilter<$PrismaModel> | $Enums.PageSlug
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPageSlugFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPageSlugFilter<$PrismaModel>
 }
 
 

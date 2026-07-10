@@ -23,6 +23,7 @@ import type {
   SalesOrderListItem,
   SalesOrderStatus,
 } from "@/types/sales-order.types";
+import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 const emptyItem: SalesOrderItemPayload = {
   productId: "",
@@ -151,7 +152,9 @@ export default function SalesOrdersPage() {
               {t("salesOrders.title")}
             </h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              {t("salesOrders.summary", { count: totalOrders })}
+              {t("salesOrders.summary", {
+                count: new Intl.NumberFormat(dateLocale).format(totalOrders),
+              })}
             </p>
           </div>
           <button
@@ -300,7 +303,10 @@ export default function SalesOrdersPage() {
                       />
                     </td>
                     <td className="px-5 py-4 text-slate-700 dark:text-slate-300">
-                      ${Number(order.totalAmount).toFixed(2)}
+                      {formatCurrency(
+                        Number(order.totalAmount).toFixed(2),
+                        dateLocale,
+                      )}
                     </td>
                     <td className="px-5 py-4 text-slate-500 dark:text-slate-400">
                       {new Date(order.createdAt).toLocaleDateString(dateLocale)}

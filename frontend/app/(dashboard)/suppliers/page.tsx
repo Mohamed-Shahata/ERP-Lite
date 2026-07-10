@@ -9,6 +9,7 @@ import {
   updateSupplierRequest,
 } from "@/lib/api/suppliers.api";
 import { Pagination } from "@/components/ui/Pagination";
+import { Modal } from "@/components/ui/Modal";
 import { useAuthStore } from "@/lib/auth/auth-store";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import type { Supplier } from "@/types/supplier.types";
@@ -115,12 +116,13 @@ function PlusIcon() {
 
 export default function SuppliersPage() {
   const { user } = useAuthStore();
-  const { t } = useTranslations();
+  const { t, dateLocale } = useTranslations();
   // Managers and admins can view and manage suppliers; only an admin may
   // delete one (a manager can create/edit, but never remove a supplier).
   const canManage = user?.role === "ADMIN" || user?.role === "MANAGER";
   const canDelete = user?.role === "ADMIN";
 
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -178,6 +180,7 @@ export default function SuppliersPage() {
       });
       setSupplierForm(emptySupplierForm);
       setMessage(t("suppliers.created"));
+      setIsCreateModalOpen(false);
       await invalidateSuppliers();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("suppliers.createError"));
@@ -263,7 +266,9 @@ export default function SuppliersPage() {
               {t("suppliers.title")}
             </h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              {t("suppliers.summary", { count: totalSuppliers })}
+              {t("suppliers.summary", {
+                count: new Intl.NumberFormat(dateLocale).format(totalSuppliers),
+              })}
               {!canManage && t("common.readOnlyAccess")}
             </p>
           </div>
@@ -292,13 +297,11 @@ export default function SuppliersPage() {
 
       <div className="space-y-6">
         {canManage && (
-          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-            <div className="mb-5 flex items-center justify-between">
-              <h3 className="text-base font-semibold text-slate-950 dark:text-white">
-                {t("suppliers.addSupplier")}
-              </h3>
-            </div>
-
+          <Modal
+            open={isCreateModalOpen}
+            onClose={() => setIsCreateModalOpen(false)}
+            title={t("suppliers.addSupplier")}
+          >
             <form onSubmit={handleCreateSupplier} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
@@ -363,6 +366,8 @@ export default function SuppliersPage() {
                   <input
                     id="supplier-phone"
                     className={inputClass}
+                    dir="ltr"
+                    type="tel"
                     onChange={(event) =>
                       setSupplierForm((current) => ({
                         ...current,
@@ -408,7 +413,7 @@ export default function SuppliersPage() {
                 {t("suppliers.addSupplier")}
               </button>
             </form>
-          </section>
+          </Modal>
         )}
 
         {/* Table */}
@@ -417,16 +422,28 @@ export default function SuppliersPage() {
             <h3 className="text-base font-semibold text-slate-950 dark:text-white">
               {t("suppliers.allSuppliers")}
             </h3>
-            <div className="relative">
-              <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-slate-400 dark:text-slate-500">
-                <SearchIcon />
-              </span>
-              <input
-                className="h-9 w-48 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 ps-9 pe-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:text-white"
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder={t("suppliers.searchPlaceholder")}
-                value={searchTerm}
-              />
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-slate-400 dark:text-slate-500">
+                  <SearchIcon />
+                </span>
+                <input
+                  className="h-9 w-48 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 ps-9 pe-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:text-white"
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder={t("suppliers.searchPlaceholder")}
+                  value={searchTerm}
+                />
+              </div>
+              {canManage && (
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-3 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  <PlusIcon />
+                  {t("suppliers.addSupplier")}
+                </button>
+              )}
             </div>
           </div>
 
@@ -509,6 +526,8 @@ export default function SuppliersPage() {
                           {isEditing ? (
                             <input
                               className={smallInputClass}
+                              dir="ltr"
+                              type="tel"
                               onChange={(event) =>
                                 setSupplierEditForm((current) => ({
                                   ...current,
@@ -519,7 +538,7 @@ export default function SuppliersPage() {
                               value={supplierEditForm.phone}
                             />
                           ) : (
-                            (supplier.phone ?? "—")
+                            <span dir="ltr">{supplier.phone ?? "—"}</span>
                           )}
                         </td>
                         <td className="px-5 py-4 text-slate-500 dark:text-slate-400">

@@ -20,6 +20,7 @@ import { PurchaseOrderStatusBadge } from "@/components/purchase-orders/PurchaseO
 import type { Product } from "@/types/product.types";
 import type { Supplier } from "@/types/supplier.types";
 import type { PurchaseOrderDetail } from "@/types/purchase-order.types";
+import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 export default function PurchaseOrderDetailPage() {
   const params = useParams<{ id: string }>();
@@ -251,7 +252,9 @@ export default function PurchaseOrderDetailPage() {
               {order.supplier.name}
             </p>
             {order.supplier.email && <p>{order.supplier.email}</p>}
-            {order.supplier.phone && <p>{order.supplier.phone}</p>}
+            {order.supplier.phone && (
+              <span dir="ltr">{order.supplier.phone}</span>
+            )}
           </div>
         )}
       </section>
@@ -298,13 +301,19 @@ export default function PurchaseOrderDetailPage() {
                       </p>
                     </td>
                     <td className="px-4 py-2 text-slate-700 dark:text-slate-300">
-                      {item.quantity}
+                      {new Intl.NumberFormat(dateLocale).format(item.quantity)}
                     </td>
                     <td className="px-4 py-2 text-slate-700 dark:text-slate-300">
-                      ${Number(item.unitCost).toFixed(2)}
+                      {formatCurrency(
+                        Number(item.unitCost).toFixed(2),
+                        dateLocale,
+                      )}
                     </td>
                     <td className="px-4 py-2 text-slate-700 dark:text-slate-300">
-                      ${(item.quantity * Number(item.unitCost)).toFixed(2)}
+                      {formatCurrency(
+                        (item.quantity * Number(item.unitCost)).toFixed(2),
+                        dateLocale,
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -314,7 +323,8 @@ export default function PurchaseOrderDetailPage() {
         )}
 
         <p className="mt-3 text-right text-sm font-semibold text-slate-950 dark:text-white">
-          {t("purchaseOrders.total")}: ${Number(order.totalAmount).toFixed(2)}
+          {t("purchaseOrders.total")}:{" "}
+          {formatCurrency(Number(order.totalAmount).toFixed(2), dateLocale)}
         </p>
       </section>
 

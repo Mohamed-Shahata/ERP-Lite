@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import { listInventoryReportRequest } from "@/lib/api/reports.api";
 import { listCategoriesRequest } from "@/lib/api/categories.api";
 import { ExportButtons } from "@/components/reports/ExportButtons";
+import { Pagination, paginate } from "@/components/ui/Pagination";
 import { exportRowsToExcel, exportRowsToPdf } from "@/lib/utils/export";
 import type { Product } from "@/types/product.types";
 
@@ -14,10 +15,12 @@ const selectClass =
   "h-10 rounded-xl border border-slate-300 dark:border-slate-700 px-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:bg-slate-900 dark:text-white";
 
 export default function InventoryReportPage() {
-  const { t } = useTranslations();
+  const { t, dateLocale } = useTranslations();
 
   const [categoryId, setCategoryId] = useState("");
   const [lowStockOnly, setLowStockOnly] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories", "all"],
@@ -42,6 +45,12 @@ export default function InventoryReportPage() {
       ? queryError.message
       : t("reports.loadError")
     : null;
+
+  useEffect(() => {
+    setPage(1);
+  }, [categoryId, lowStockOnly]);
+
+  const paginatedProducts = paginate(products, page, pageSize);
 
   const exportColumns = [
     {
@@ -151,69 +160,83 @@ export default function InventoryReportPage() {
             {t("reports.empty")}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-160 text-start text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800 text-xs uppercase text-slate-500 dark:text-slate-400">
-                <tr>
-                  <th className="px-5 py-3 text-start font-semibold">
-                    {t("reports.columns.product")}
-                  </th>
-                  <th className="px-5 py-3 text-start font-semibold">
-                    {t("reports.columns.sku")}
-                  </th>
-                  <th className="px-5 py-3 text-start font-semibold">
-                    {t("reports.columns.category")}
-                  </th>
-                  <th className="px-5 py-3 text-start font-semibold">
-                    {t("reports.columns.stock")}
-                  </th>
-                  <th className="px-5 py-3 text-start font-semibold">
-                    {t("reports.columns.reorderLevel")}
-                  </th>
-                  <th className="px-5 py-3 text-start font-semibold">
-                    {t("reports.columns.stockStatus")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                {products.map((product) => {
-                  const isLow = product.quantityInStock <= product.reorderLevel;
-                  return (
-                    <tr key={product.id}>
-                      <td className="px-5 py-3 font-medium text-slate-950 dark:text-white">
-                        {product.name}
-                      </td>
-                      <td className="px-5 py-3 text-slate-700 dark:text-slate-300">
-                        {product.sku}
-                      </td>
-                      <td className="px-5 py-3 text-slate-700 dark:text-slate-300">
-                        {product.category.name}
-                      </td>
-                      <td className="px-5 py-3 text-slate-700 dark:text-slate-300">
-                        {product.quantityInStock}
-                      </td>
-                      <td className="px-5 py-3 text-slate-700 dark:text-slate-300">
-                        {product.reorderLevel}
-                      </td>
-                      <td className="px-5 py-3">
-                        <span
-                          className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium ${
-                            isLow
-                              ? "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
-                              : "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
-                          }`}
-                        >
-                          {isLow
-                            ? t("reports.columns.lowStock")
-                            : t("reports.columns.inStock")}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-160 text-start text-sm">
+                <thead className="bg-slate-50 dark:bg-slate-800 text-xs uppercase text-slate-500 dark:text-slate-400">
+                  <tr>
+                    <th className="px-5 py-3 text-start font-semibold">
+                      {t("reports.columns.product")}
+                    </th>
+                    <th className="px-5 py-3 text-start font-semibold">
+                      {t("reports.columns.sku")}
+                    </th>
+                    <th className="px-5 py-3 text-start font-semibold">
+                      {t("reports.columns.category")}
+                    </th>
+                    <th className="px-5 py-3 text-start font-semibold">
+                      {t("reports.columns.stock")}
+                    </th>
+                    <th className="px-5 py-3 text-start font-semibold">
+                      {t("reports.columns.reorderLevel")}
+                    </th>
+                    <th className="px-5 py-3 text-start font-semibold">
+                      {t("reports.columns.stockStatus")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                  {paginatedProducts.map((product) => {
+                    const isLow =
+                      product.quantityInStock <= product.reorderLevel;
+                    return (
+                      <tr key={product.id}>
+                        <td className="px-5 py-3 font-medium text-slate-950 dark:text-white">
+                          {product.name}
+                        </td>
+                        <td className="px-5 py-3 text-slate-700 dark:text-slate-300">
+                          {product.sku}
+                        </td>
+                        <td className="px-5 py-3 text-slate-700 dark:text-slate-300">
+                          {product.category.name}
+                        </td>
+                        <td className="px-5 py-3 text-slate-700 dark:text-slate-300">
+                          {new Intl.NumberFormat(dateLocale).format(
+                            product.quantityInStock,
+                          )}
+                        </td>
+                        <td className="px-5 py-3 text-slate-700 dark:text-slate-300">
+                          {new Intl.NumberFormat(dateLocale).format(
+                            product.reorderLevel,
+                          )}
+                        </td>
+                        <td className="px-5 py-3">
+                          <span
+                            className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium ${
+                              isLow
+                                ? "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+                                : "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
+                            }`}
+                          >
+                            {isLow
+                              ? t("reports.columns.lowStock")
+                              : t("reports.columns.inStock")}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <Pagination
+              currentPage={page}
+              pageSize={pageSize}
+              totalItems={products.length}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          </>
         )}
       </section>
     </div>

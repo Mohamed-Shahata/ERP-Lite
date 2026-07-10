@@ -178,9 +178,12 @@ export function InvoiceDetailView({ invoice }: InvoiceDetailViewProps) {
                   <div className="text-slate-600 dark:text-slate-400">
                     {t("invoices.phone")}
                   </div>
-                  <div className="font-medium text-slate-900 dark:text-slate-50">
+                  <span
+                    dir="ltr"
+                    className="font-medium text-slate-900 dark:text-slate-50"
+                  >
                     {invoice.salesOrder.customer.phone}
-                  </div>
+                  </span>
                 </div>
               )}
             </div>
@@ -213,7 +216,9 @@ export function InvoiceDetailView({ invoice }: InvoiceDetailViewProps) {
                   {t("invoices.paymentsCount")}
                 </div>
                 <div className="font-medium text-slate-900 dark:text-slate-50">
-                  {invoice.payments.length}
+                  {new Intl.NumberFormat(dateLocale).format(
+                    invoice.payments.length,
+                  )}
                 </div>
               </div>
             </div>
@@ -256,7 +261,7 @@ export function InvoiceDetailView({ invoice }: InvoiceDetailViewProps) {
                       {item.product.sku}
                     </td>
                     <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                      {item.quantity}
+                      {new Intl.NumberFormat(dateLocale).format(item.quantity)}
                     </td>
                     <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
                       {formatCurrency(item.unitPrice, dateLocale)}

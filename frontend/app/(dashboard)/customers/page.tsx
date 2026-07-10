@@ -9,6 +9,7 @@ import {
   updateCustomerRequest,
 } from "@/lib/api/customers.api";
 import { Pagination } from "@/components/ui/Pagination";
+import { Modal } from "@/components/ui/Modal";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import type { Customer } from "@/types/customer.types";
 
@@ -113,11 +114,11 @@ function PlusIcon() {
 }
 
 export default function CustomersPage() {
-  const { t } = useTranslations();
-  // Customers: ADMIN, MANAGER, and EMPLOYEE all get full CRUD.
+  const { t, dateLocale } = useTranslations();
   const canManage = true;
   const canDelete = true;
 
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -175,6 +176,7 @@ export default function CustomersPage() {
       });
       setCustomerForm(emptyCustomerForm);
       setMessage(t("customers.created"));
+      setIsCreateModalOpen(false);
       await invalidateCustomers();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("customers.createError"));
@@ -260,7 +262,9 @@ export default function CustomersPage() {
               {t("customers.title")}
             </h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              {t("customers.summary", { count: totalCustomers })}
+              {t("customers.summary", {
+                count: new Intl.NumberFormat(dateLocale).format(totalCustomers),
+              })}
               {!canManage && t("common.readOnlyAccess")}
             </p>
           </div>
@@ -289,13 +293,11 @@ export default function CustomersPage() {
 
       <div className="space-y-6">
         {canManage && (
-          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-            <div className="mb-5 flex items-center justify-between">
-              <h3 className="text-base font-semibold text-slate-950 dark:text-white">
-                {t("customers.addCustomer")}
-              </h3>
-            </div>
-
+          <Modal
+            open={isCreateModalOpen}
+            onClose={() => setIsCreateModalOpen(false)}
+            title={t("customers.addCustomer")}
+          >
             <form onSubmit={handleCreateCustomer} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
@@ -407,7 +409,7 @@ export default function CustomersPage() {
                 {t("customers.addCustomer")}
               </button>
             </form>
-          </section>
+          </Modal>
         )}
 
         {/* Table */}
@@ -416,16 +418,28 @@ export default function CustomersPage() {
             <h3 className="text-base font-semibold text-slate-950 dark:text-white">
               {t("customers.allCustomers")}
             </h3>
-            <div className="relative">
-              <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-slate-400 dark:text-slate-500">
-                <SearchIcon />
-              </span>
-              <input
-                className="h-9 w-48 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 ps-9 pe-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:text-white"
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder={t("customers.searchPlaceholder")}
-                value={searchTerm}
-              />
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-slate-400 dark:text-slate-500">
+                  <SearchIcon />
+                </span>
+                <input
+                  className="h-9 w-48 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 ps-9 pe-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:text-white"
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder={t("customers.searchPlaceholder")}
+                  value={searchTerm}
+                />
+              </div>
+              {canManage && (
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-3 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  <PlusIcon />
+                  {t("customers.addCustomer")}
+                </button>
+              )}
             </div>
           </div>
 

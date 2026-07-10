@@ -1,7 +1,9 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Modal } from "@/components/ui/Modal";
 import { listCategoriesRequest } from "@/lib/api/categories.api";
 import {
   createProductRequest,
@@ -14,6 +16,7 @@ import { useAuthStore } from "@/lib/auth/auth-store";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import type { Product } from "@/types/product.types";
 import { Pagination } from "@/components/ui/Pagination";
+import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 const emptyProductForm: CreateProductPayload = {
   sku: "",
@@ -26,14 +29,6 @@ const emptyProductForm: CreateProductPayload = {
   reorderLevel: 10,
   isActive: true,
 };
-
-function formatCurrency(amount: string | number, dateLocale: string) {
-  const num = typeof amount === "string" ? parseFloat(amount) : amount;
-  return new Intl.NumberFormat(dateLocale, {
-    style: "currency",
-    currency: "EGP",
-  }).format(num);
-}
 
 function RefreshIcon() {
   return (
@@ -197,11 +192,35 @@ export default function ProductsPage() {
   const { user } = useAuthStore();
   const { t, dateLocale } = useTranslations();
   const canManage = user?.role === "ADMIN" || user?.role === "MANAGER";
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [stockFilter, setStockFilter] = useState<"all" | "low" | "out">(
+    (searchParams.get("stockFilter") as "low" | "out" | null) ?? "all",
+  );
+
+  useEffect(() => {
+    const paramValue = searchParams.get("stockFilter");
+    if (paramValue === "low" || paramValue === "out") {
+      setStockFilter(paramValue);
+    }
+  }, [searchParams]);
+
+  function handleStockFilterChange(value: "all" | "low" | "out") {
+    setStockFilter(value);
+    const url = new URL(window.location.href);
+    if (value === "all") {
+      url.searchParams.delete("stockFilter");
+    } else {
+      url.searchParams.set("stockFilter", value);
+    }
+    router.replace(url.pathname + url.search);
+  }
 
   const [productForm, setProductForm] =
     useState<CreateProductPayload>(emptyProductForm);
@@ -244,14 +263,26 @@ export default function ProductsPage() {
   }, [categories]);
 
   const visibleProducts = useMemo(() => {
-    if (!searchTerm.trim()) return products;
-    const term = searchTerm.trim().toLowerCase();
-    return products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(term) ||
-        product.sku.toLowerCase().includes(term),
-    );
-  }, [products, searchTerm]);
+    let result = products;
+    if (stockFilter === "low") {
+      result = result.filter(
+        (product) =>
+          product.quantityInStock > 0 &&
+          product.quantityInStock <= product.reorderLevel,
+      );
+    } else if (stockFilter === "out") {
+      result = result.filter((product) => product.quantityInStock === 0);
+    }
+    if (searchTerm.trim()) {
+      const term = searchTerm.trim().toLowerCase();
+      result = result.filter(
+        (product) =>
+          product.name.toLowerCase().includes(term) ||
+          product.sku.toLowerCase().includes(term),
+      );
+    }
+    return result;
+  }, [products, searchTerm, stockFilter]);
 
   async function handleCreateProduct(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -270,6 +301,7 @@ export default function ProductsPage() {
       });
       setProductForm(emptyProductForm);
       setMessage(t("products.created"));
+      setIsCreateModalOpen(false);
       await invalidateProducts();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("products.createError"));
@@ -362,8 +394,10 @@ export default function ProductsPage() {
             </h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               {t("products.summary", {
-                count: totalProducts,
-                categories: categories.length,
+                count: new Intl.NumberFormat(dateLocale).format(totalProducts),
+                categories: new Intl.NumberFormat(dateLocale).format(
+                  categories.length,
+                ),
               })}
               {!canManage && t("common.readOnlyAccess")}
             </p>
@@ -393,11 +427,15 @@ export default function ProductsPage() {
 
       <div className="space-y-6">
         {canManage && (
-          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
+          <Modal
+            open={isCreateModalOpen}
+            onClose={() => setIsCreateModalOpen(false)}
+            title={t("products.addNewProduct")}
+          >
             <div className="mb-5 flex items-center justify-between">
-              <h3 className="text-base font-semibold text-slate-950 dark:text-white">
-                {t("products.addNewProduct")}
-              </h3>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                {t("common.status")}
+              </span>
               <ToggleSwitch
                 checked={productForm.isActive ?? true}
                 onChange={(value) =>
@@ -606,16 +644,16 @@ export default function ProductsPage() {
                 {t("products.addToInventory")}
               </button>
             </form>
-          </section>
+          </Modal>
         )}
 
         {/* Table */}
         <section className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-          <div className="flex items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 px-5 py-4">
+          <div className="flex flex-col gap-3 border-b border-slate-200 dark:border-slate-800 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-base font-semibold text-slate-950 dark:text-white">
               {t("products.allProducts")}
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <div className="relative">
                 <span className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-slate-400 dark:text-slate-500">
                   <SearchIcon />
@@ -627,13 +665,32 @@ export default function ProductsPage() {
                   value={searchTerm}
                 />
               </div>
-              <button
-                type="button"
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                aria-label={t("common.actions")}
-              >
+              <div className="flex items-center gap-1 rounded-lg border border-slate-300 p-1 dark:border-slate-700">
                 <FilterIcon />
-              </button>
+                <select
+                  className="h-7 rounded-md border-none bg-transparent text-xs font-medium text-slate-600 outline-none dark:text-slate-300"
+                  onChange={(event) =>
+                    handleStockFilterChange(
+                      event.target.value as "all" | "low" | "out",
+                    )
+                  }
+                  value={stockFilter}
+                >
+                  <option value="all">{t("products.stockFilter.all")}</option>
+                  <option value="low">{t("products.stockFilter.low")}</option>
+                  <option value="out">{t("products.stockFilter.out")}</option>
+                </select>
+              </div>
+              {canManage && (
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-3 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  <PlusIcon />
+                  {t("products.addNewProduct")}
+                </button>
+              )}
             </div>
           </div>
 

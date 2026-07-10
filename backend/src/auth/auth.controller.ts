@@ -68,7 +68,6 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    console.log(req.cookies);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const rawRefreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE];
     const { accessToken, refreshToken, user } =

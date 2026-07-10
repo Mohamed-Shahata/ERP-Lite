@@ -227,6 +227,13 @@ export default function DashboardPage() {
         topProducts,
         revenueByCategory,
         customerGrowth,
+        // Raw datasets so the charts can re-aggregate per selected period
+        // (week/month/year) on the client without extra requests.
+        rawSalesOrders: allSalesResult.data,
+        rawPurchaseOrders: allPurchaseResult.data,
+        rawSoldMovements: soldMovementsResult?.data ?? [],
+        rawProductsById: productById,
+        rawCustomers: allCustomersResult?.data ?? [],
       };
     },
   });
@@ -246,6 +253,14 @@ export default function DashboardPage() {
   const topProducts = data?.topProducts ?? [];
   const revenueByCategory = data?.revenueByCategory ?? [];
   const customerGrowth = data?.customerGrowth ?? [];
+  const rawSalesOrders = data?.rawSalesOrders ?? [];
+  const rawPurchaseOrders = data?.rawPurchaseOrders ?? [];
+  const rawSoldMovements = data?.rawSoldMovements ?? [];
+  const rawProductsById = useMemo(
+    () => data?.rawProductsById ?? new Map(),
+    [data?.rawProductsById],
+  );
+  const rawCustomers = data?.rawCustomers ?? [];
 
   const overdueAmount = useMemo(
     () =>
@@ -304,6 +319,9 @@ export default function DashboardPage() {
       <DashboardAlertBanners
         lowStockCount={lowStockProducts.length}
         overdueCount={overdueInvoices.length}
+        singleOverdueInvoiceId={
+          overdueInvoices.length === 1 ? overdueInvoices[0].id : undefined
+        }
         labels={{
           stockTitle: t("dashboard.alerts.stockTitle", {
             count: lowStockProducts.length,
@@ -327,6 +345,12 @@ export default function DashboardPage() {
           topProducts={topProducts}
           revenueByCategory={revenueByCategory}
           customerGrowth={customerGrowth}
+          locale={dateLocale}
+          rawSalesOrders={rawSalesOrders}
+          rawPurchaseOrders={rawPurchaseOrders}
+          rawSoldMovements={rawSoldMovements}
+          rawProductsById={rawProductsById}
+          rawCustomers={rawCustomers}
         />
       )}
 

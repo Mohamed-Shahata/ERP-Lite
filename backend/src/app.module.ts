@@ -18,6 +18,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { StockMovementsModule } from './stock-movements/stock-movements.module';
 import { CompanySettingsModule } from './company-settings/company-settings.module';
+import { ContentPagesModule } from './content-pages/content-pages.module';
 import { CacheModule } from './common/cache/cache.module';
 import { ReportsModule } from './reports/reports.module';
 import { AuditLogModule } from './common/audit-log/audit-log.module';
@@ -42,6 +43,7 @@ import { AuditLogModule } from './common/audit-log/audit-log.module';
     PaymentsModule,
     DashboardModule,
     CompanySettingsModule,
+    ContentPagesModule,
     CacheModule,
     ReportsModule,
     AuditLogModule,

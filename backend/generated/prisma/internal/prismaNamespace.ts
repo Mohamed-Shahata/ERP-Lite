@@ -398,7 +398,8 @@ export const ModelName = {
   Invoice: 'Invoice',
   Payment: 'Payment',
   StockMovement: 'StockMovement',
-  CompanySettings: 'CompanySettings'
+  CompanySettings: 'CompanySettings',
+  ContentPage: 'ContentPage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -414,7 +415,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "auditLog" | "user" | "refreshToken" | "category" | "product" | "customer" | "supplier" | "purchaseOrder" | "purchaseOrderItem" | "salesOrder" | "salesOrderItem" | "invoice" | "payment" | "stockMovement" | "companySettings"
+    modelProps: "auditLog" | "user" | "refreshToken" | "category" | "product" | "customer" | "supplier" | "purchaseOrder" | "purchaseOrderItem" | "salesOrder" | "salesOrderItem" | "invoice" | "payment" | "stockMovement" | "companySettings" | "contentPage"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1528,6 +1529,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ContentPage: {
+      payload: Prisma.$ContentPagePayload<ExtArgs>
+      fields: Prisma.ContentPageFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ContentPageFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPagePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ContentPageFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPagePayload>
+        }
+        findFirst: {
+          args: Prisma.ContentPageFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPagePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ContentPageFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPagePayload>
+        }
+        findMany: {
+          args: Prisma.ContentPageFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPagePayload>[]
+        }
+        create: {
+          args: Prisma.ContentPageCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPagePayload>
+        }
+        createMany: {
+          args: Prisma.ContentPageCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ContentPageCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPagePayload>[]
+        }
+        delete: {
+          args: Prisma.ContentPageDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPagePayload>
+        }
+        update: {
+          args: Prisma.ContentPageUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPagePayload>
+        }
+        deleteMany: {
+          args: Prisma.ContentPageDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ContentPageUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ContentPageUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPagePayload>[]
+        }
+        upsert: {
+          args: Prisma.ContentPageUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContentPagePayload>
+        }
+        aggregate: {
+          args: Prisma.ContentPageAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateContentPage>
+        }
+        groupBy: {
+          args: Prisma.ContentPageGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ContentPageGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ContentPageCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ContentPageCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1768,6 +1843,18 @@ export const CompanySettingsScalarFieldEnum = {
 export type CompanySettingsScalarFieldEnum = (typeof CompanySettingsScalarFieldEnum)[keyof typeof CompanySettingsScalarFieldEnum]
 
 
+export const ContentPageScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  title: 'title',
+  body: 'body',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ContentPageScalarFieldEnum = (typeof ContentPageScalarFieldEnum)[keyof typeof ContentPageScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1991,6 +2078,20 @@ export type ListEnumReferenceTypeFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
+ * Reference to a field of type 'PageSlug'
+ */
+export type EnumPageSlugFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PageSlug'>
+    
+
+
+/**
+ * Reference to a field of type 'PageSlug[]'
+ */
+export type ListEnumPageSlugFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PageSlug[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -2128,6 +2229,7 @@ export type GlobalOmitConfig = {
   payment?: Prisma.PaymentOmit
   stockMovement?: Prisma.StockMovementOmit
   companySettings?: Prisma.CompanySettingsOmit
+  contentPage?: Prisma.ContentPageOmit
 }
 
 /* Types for Logging */

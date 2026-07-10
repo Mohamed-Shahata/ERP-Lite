@@ -282,3 +282,25 @@ model CompanySettings {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
+
+enum PageSlug {
+  HELP
+  PRIVACY
+  TERMS
+  SUPPORT
+  TEAMS
+}
+
+// Admin-editable static pages (help, privacy policy, terms of use, support,
+// teams) rendered publicly (e.g. from the login screen footer) as well as
+// inside the dashboard. Body is sanitized HTML produced by the rich-text
+// editor in the settings UI.
+model ContentPage {
+  id        String   @id @default(uuid())
+  slug      PageSlug @unique
+  title     String
+  body      String   @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

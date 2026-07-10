@@ -4,10 +4,21 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import { getReportsSummaryRequest } from "@/lib/api/reports.api";
+import { listUsersRequest } from "@/lib/api/users.api";
+import { listProductsRequest } from "@/lib/api/products.api";
+import { listCategoriesRequest } from "@/lib/api/categories.api";
+import { listSalesOrdersRequest } from "@/lib/api/sales-orders.api";
+import { listPurchaseOrdersRequest } from "@/lib/api/purchase-orders.api";
+import { listStockMovementsRequest } from "@/lib/api/stock-movements.api";
 import { DateRangeFilter } from "@/components/reports/DateRangeFilter";
 import { ExportButtons } from "@/components/reports/ExportButtons";
 import { formatReportCurrency } from "@/components/reports/InvoiceReportTable";
-import { exportRowsToExcel, exportRowsToPdf } from "@/lib/utils/export";
+import {
+  exportSectionsToExcel,
+  exportSectionsToPdf,
+  type ExportSection,
+} from "@/lib/utils/export";
+import { fetchAllPages } from "@/lib/utils/fetch-all-pages";
 import {
   SalesReportIcon,
   PurchaseReportIcon,
@@ -15,6 +26,14 @@ import {
   PaymentReportIcon,
 } from "@/components/reports/ReportIcons";
 import type { ReportsSummary } from "@/types/report.types";
+import type { SystemUser } from "@/types/auth.types";
+import type { Product, Category } from "@/types/product.types";
+import type { SalesOrderListItem } from "@/types/sales-order.types";
+import type { PurchaseOrderListItem } from "@/types/purchase-order.types";
+import type { StockMovement } from "@/types/stock-movement.types";
+
+// Backend caps `limit` at 100 (see PaginationQueryDto), so a full export
+// has to walk every page at that max size instead of asking for one huge page.
 
 const CATEGORIES = [
   { key: "sales", href: "/reports/sales", Icon: SalesReportIcon },
@@ -29,6 +48,7 @@ export default function ReportsPage() {
   const [summary, setSummary] = useState<ReportsSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,45 +91,219 @@ export default function ReportsPage() {
         },
         {
           label: t("reports.summary.lowStockProducts"),
-          value: String(summary.lowStockCount),
+          value: new Intl.NumberFormat(dateLocale).format(
+            summary.lowStockCount,
+          ),
         },
       ]
     : [];
 
-  function handleExportPdf() {
-    if (!summary) return;
-    exportRowsToPdf(
-      t("reports.title"),
-      [
-        {
-          header: t("common.status"),
-          accessor: (row: (typeof summaryCards)[number]) => row.label,
-        },
-        {
-          header: t("reports.columns.total"),
-          accessor: (row: (typeof summaryCards)[number]) => row.value,
-        },
-      ],
-      summaryCards,
-    );
+  // Fetches every entity in the system and shapes it into one table per
+  // type, so a single PDF/Excel export gives a full snapshot of the ERP.
+  async function buildFullExportSections(): Promise<ExportSection<never>[]> {
+    const [users, products, categories, salesOrders, purchaseOrders, stock] =
+      await Promise.all([
+        listUsersRequest(),
+        fetchAllPages((p) => listProductsRequest(p)),
+        fetchAllPages((p) => listCategoriesRequest(p)),
+        fetchAllPages((p) => listSalesOrdersRequest(p)),
+        fetchAllPages((p) => listPurchaseOrdersRequest(p)),
+        fetchAllPages((p) => listStockMovementsRequest(p)),
+      ]);
+
+    const fmtDate = (d: string) => new Date(d).toLocaleDateString(dateLocale);
+
+    const sections: ExportSection<never>[] = [
+      {
+        title: t("reports.sections.employees"),
+        columns: [
+          { header: t("common.name"), accessor: (r: SystemUser) => r.name },
+          { header: t("common.email"), accessor: (r: SystemUser) => r.email },
+          {
+            header: t("users.role"),
+            accessor: (r: SystemUser) => t(`roles.${r.role.toLowerCase()}`),
+          },
+          {
+            header: t("common.status"),
+            accessor: (r: SystemUser) =>
+              r.isActive ? t("common.active") : t("common.inactive"),
+          },
+          {
+            header: t("reports.columns.date"),
+            accessor: (r: SystemUser) => fmtDate(r.createdAt),
+          },
+        ],
+        rows: users,
+      },
+      {
+        title: t("reports.sections.categories"),
+        columns: [
+          { header: t("common.name"), accessor: (r: Category) => r.name },
+          {
+            header: t("common.description"),
+            accessor: (r: Category) => r.description ?? "",
+          },
+          {
+            header: t("reports.columns.productCount"),
+            accessor: (r: Category) => r._count?.products ?? 0,
+          },
+        ],
+        rows: categories,
+      },
+      {
+        title: t("reports.sections.products"),
+        columns: [
+          { header: t("reports.columns.sku"), accessor: (r: Product) => r.sku },
+          {
+            header: t("reports.columns.product"),
+            accessor: (r: Product) => r.name,
+          },
+          {
+            header: t("reports.columns.category"),
+            accessor: (r: Product) => r.category.name,
+          },
+          {
+            header: t("products.costPrice"),
+            accessor: (r: Product) =>
+              formatReportCurrency(r.costPrice, dateLocale),
+          },
+          {
+            header: t("products.sellPrice"),
+            accessor: (r: Product) =>
+              formatReportCurrency(r.sellPrice, dateLocale),
+          },
+          {
+            header: t("reports.columns.stock"),
+            accessor: (r: Product) => r.quantityInStock,
+          },
+          {
+            header: t("reports.columns.reorderLevel"),
+            accessor: (r: Product) => r.reorderLevel,
+          },
+          {
+            header: t("common.status"),
+            accessor: (r: Product) =>
+              r.isActive ? t("common.active") : t("common.inactive"),
+          },
+        ],
+        rows: products,
+      },
+      {
+        title: t("reports.sections.salesOrders"),
+        columns: [
+          {
+            header: t("salesOrders.soNumber"),
+            accessor: (r: SalesOrderListItem) => r.orderNumber,
+          },
+          {
+            header: t("reports.columns.customer"),
+            accessor: (r: SalesOrderListItem) => r.customer.name,
+          },
+          {
+            header: t("common.status"),
+            accessor: (r: SalesOrderListItem) =>
+              t(`salesOrders.status.${r.status}`),
+          },
+          {
+            header: t("reports.columns.total"),
+            accessor: (r: SalesOrderListItem) =>
+              formatReportCurrency(r.totalAmount, dateLocale),
+          },
+          {
+            header: t("reports.columns.date"),
+            accessor: (r: SalesOrderListItem) => fmtDate(r.createdAt),
+          },
+        ],
+        rows: salesOrders,
+      },
+      {
+        title: t("reports.sections.purchaseOrders"),
+        columns: [
+          {
+            header: t("purchaseOrders.poNumber"),
+            accessor: (r: PurchaseOrderListItem) => r.poNumber,
+          },
+          {
+            header: t("reports.columns.supplier"),
+            accessor: (r: PurchaseOrderListItem) => r.supplier.name,
+          },
+          {
+            header: t("common.status"),
+            accessor: (r: PurchaseOrderListItem) =>
+              t(`purchaseOrders.status.${r.status}`),
+          },
+          {
+            header: t("reports.columns.total"),
+            accessor: (r: PurchaseOrderListItem) =>
+              formatReportCurrency(r.totalAmount, dateLocale),
+          },
+          {
+            header: t("reports.columns.date"),
+            accessor: (r: PurchaseOrderListItem) => fmtDate(r.createdAt),
+          },
+        ],
+        rows: purchaseOrders,
+      },
+      {
+        title: t("reports.sections.stockMovements"),
+        columns: [
+          {
+            header: t("reports.columns.product"),
+            accessor: (r: StockMovement) => r.product.name,
+          },
+          {
+            header: t("stockMovements.type_"),
+            accessor: (r: StockMovement) => t(`stockMovements.type.${r.type}`),
+          },
+          {
+            header: t("stockMovements.quantity"),
+            accessor: (r: StockMovement) => r.quantity,
+          },
+          {
+            header: t("stockMovements.reference_"),
+            accessor: (r: StockMovement) =>
+              t(`stockMovements.reference.${r.referenceType}`),
+          },
+          {
+            header: t("reports.columns.note"),
+            accessor: (r: StockMovement) => r.note ?? "",
+          },
+          {
+            header: t("stockMovements.createdBy"),
+            accessor: (r: StockMovement) => r.createdBy.name,
+          },
+          {
+            header: t("reports.columns.date"),
+            accessor: (r: StockMovement) => fmtDate(r.createdAt),
+          },
+        ],
+        rows: stock,
+      },
+    ];
+
+    return sections;
   }
 
-  function handleExportExcel() {
-    if (!summary) return;
-    exportRowsToExcel(
-      "reports-summary",
-      [
-        {
-          header: t("common.status"),
-          accessor: (row: (typeof summaryCards)[number]) => row.label,
-        },
-        {
-          header: t("reports.columns.total"),
-          accessor: (row: (typeof summaryCards)[number]) => row.value,
-        },
-      ],
-      summaryCards,
-    );
+  async function handleExportPdf() {
+    if (!summary || isExporting) return;
+    setIsExporting(true);
+    try {
+      const sections = await buildFullExportSections();
+      exportSectionsToPdf(t("reports.fullExportTitle"), sections);
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
+  async function handleExportExcel() {
+    if (!summary || isExporting) return;
+    setIsExporting(true);
+    try {
+      const sections = await buildFullExportSections();
+      exportSectionsToExcel("erp-full-report", sections);
+    } finally {
+      setIsExporting(false);
+    }
   }
 
   const query =
@@ -136,7 +330,7 @@ export default function ReportsPage() {
           <ExportButtons
             onExportPdf={handleExportPdf}
             onExportExcel={handleExportExcel}
-            disabled={!summary}
+            disabled={!summary || isExporting}
           />
         </div>
       </section>

@@ -1,5 +1,6 @@
 import type { InvoiceDetail } from "@/types/invoice.types";
 import type { CompanySettings } from "@/types/company-settings.types";
+import { resolveAssetUrl } from "@/lib/api/client";
 
 interface PrintableInvoiceProps {
   invoice: InvoiceDetail;
@@ -33,7 +34,7 @@ export function PrintableInvoice({
           {company?.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={company.logoUrl}
+              src={resolveAssetUrl(company.logoUrl)!}
               alt=""
               className="h-14 w-14 object-contain"
             />

@@ -143,7 +143,9 @@ export default function StockMovementsPage() {
             {t("stockMovements.title")}
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {t("stockMovements.summary", { count: total })}
+            {t("stockMovements.summary", {
+              count: new Intl.NumberFormat(dateLocale).format(total),
+            })}
           </p>
         </div>
         <button
@@ -302,7 +304,7 @@ export default function StockMovementsPage() {
                     </td>
                     <td className="px-5 py-3.5 text-slate-600 dark:text-slate-300">
                       {m.type === "OUT" ? "-" : "+"}
-                      {m.quantity}
+                      {new Intl.NumberFormat(dateLocale).format(m.quantity)}
                     </td>
                     <td className="px-5 py-3.5 text-slate-600 dark:text-slate-300">
                       {t(`stockMovements.reference.${m.referenceType}`)}

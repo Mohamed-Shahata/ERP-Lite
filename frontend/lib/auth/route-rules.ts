@@ -9,6 +9,8 @@ export const ROUTE_RULES: RouteRule[] = [
   { pattern: "/settings/company", roles: ["ADMIN"] },
   // Who did what, when — admins only.
   { pattern: "/settings/audit-logs", roles: ["ADMIN"] },
+  // Help/Privacy/Terms/Support/Teams page content — admins only.
+  { pattern: "/settings/pages", roles: ["ADMIN"] },
   { pattern: "/settings", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
   { pattern: "/products", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },
   { pattern: "/categories", roles: ["ADMIN", "MANAGER", "EMPLOYEE"] },

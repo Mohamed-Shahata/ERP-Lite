@@ -64,6 +64,27 @@ function ScrollIcon() {
   );
 }
 
+function DocumentIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      className="h-5 w-5"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M7 3.5h7l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19V5A1.5 1.5 0 0 1 7 3.5Z"
+      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M14 3.5V8h4" />
+      <path strokeLinecap="round" d="M9 12.5h6M9 15.5h6M9 9.5h2" />
+    </svg>
+  );
+}
+
 function ChevronIcon() {
   return (
     <svg
@@ -115,6 +136,15 @@ const settingsSections: SettingsSection[] = [
     icon: ScrollIcon,
     titleKey: "auditLogs.cardTitle",
     descriptionKey: "auditLogs.cardDescription",
+    roles: ["ADMIN"],
+  },
+  // Help/Privacy/Terms/Support/Teams content shown on the login screen and
+  // dashboard footer — admins only.
+  {
+    href: "/settings/pages",
+    icon: DocumentIcon,
+    titleKey: "contentPages.cardTitle",
+    descriptionKey: "contentPages.cardDescription",
     roles: ["ADMIN"],
   },
 ];

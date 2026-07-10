@@ -11,9 +11,24 @@ import { Pagination } from "@/components/ui/Pagination";
 import type { AuditLog } from "@/types/audit-log.types";
 
 const ACTION_KEYS: Record<string, string> = {
+  SALES_ORDER_CREATED: "auditLogs.actions.salesOrderCreated",
   SALES_ORDER_CONFIRMED: "auditLogs.actions.salesOrderConfirmed",
+  PURCHASE_ORDER_CREATED: "auditLogs.actions.purchaseOrderCreated",
   PURCHASE_ORDER_RECEIVED: "auditLogs.actions.purchaseOrderReceived",
   PAYMENT_RECORDED: "auditLogs.actions.paymentRecorded",
+  PRODUCT_CREATED: "auditLogs.actions.productCreated",
+  PRODUCT_UPDATED: "auditLogs.actions.productUpdated",
+  PRODUCT_DELETED: "auditLogs.actions.productDeleted",
+  COMPANY_SETTINGS_UPDATED: "auditLogs.actions.companySettingsUpdated",
+  USER_CREATED: "auditLogs.actions.userCreated",
+  USER_ROLE_CHANGED: "auditLogs.actions.userRoleChanged",
+  USER_ACTIVATED: "auditLogs.actions.userActivated",
+  USER_DEACTIVATED: "auditLogs.actions.userDeactivated",
+  LOGIN: "auditLogs.actions.login",
+  CREATE: "auditLogs.actions.create",
+  UPDATE: "auditLogs.actions.update",
+  DELETE: "auditLogs.actions.delete",
+  RECORD_PAYMENT: "auditLogs.actions.recordPayment",
 };
 
 export default function AuditLogsPage() {

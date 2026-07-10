@@ -140,6 +140,19 @@ export default function UsersSettingsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  function getRoleLabel(role: Role) {
+    switch (role) {
+      case "ADMIN":
+        return t("roles.admin");
+      case "MANAGER":
+        return t("roles.manager");
+      case "EMPLOYEE":
+        return t("roles.employee");
+      default:
+        return role;
+    }
+  }
+
   const activeUsersCount = useMemo(
     () => users.filter((user) => user.isActive).length,
     [users],
@@ -279,8 +292,10 @@ export default function UsersSettingsPage() {
             </h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               {t("users.summary", {
-                total: users.length,
-                active: activeUsersCount,
+                total: new Intl.NumberFormat(dateLocale).format(users.length),
+                active: new Intl.NumberFormat(dateLocale).format(
+                  activeUsersCount,
+                ),
               })}
             </p>
           </div>
@@ -365,7 +380,7 @@ export default function UsersSettingsPage() {
             >
               {roles.map((role) => (
                 <option key={role} value={role}>
-                  {role}
+                  {getRoleLabel(role)}
                 </option>
               ))}
             </select>
@@ -498,7 +513,7 @@ export default function UsersSettingsPage() {
                                   : "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400"
                             }`}
                           >
-                            {user.role}
+                            {getRoleLabel(user.role)}
                           </span>
                         )}
                       </td>

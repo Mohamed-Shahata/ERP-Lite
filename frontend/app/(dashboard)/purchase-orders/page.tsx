@@ -21,6 +21,7 @@ import type {
   PurchaseOrderListItem,
   PurchaseOrderStatus,
 } from "@/types/purchase-order.types";
+import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 const emptyItem: PurchaseOrderItemPayload = {
   productId: "",
@@ -160,7 +161,9 @@ export default function PurchaseOrdersPage() {
               {t("purchaseOrders.title")}
             </h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              {t("purchaseOrders.summary", { count: totalOrders })}
+              {t("purchaseOrders.summary", {
+                count: new Intl.NumberFormat(dateLocale).format(totalOrders),
+              })}
             </p>
           </div>
           {canManage && (
@@ -313,7 +316,10 @@ export default function PurchaseOrdersPage() {
                       />
                     </td>
                     <td className="px-5 py-4 text-slate-700 dark:text-slate-300">
-                      ${Number(order.totalAmount).toFixed(2)}
+                      {formatCurrency(
+                        Number(order.totalAmount).toFixed(2),
+                        dateLocale,
+                      )}
                     </td>
                     <td className="px-5 py-4 text-slate-500 dark:text-slate-400">
                       {new Date(order.createdAt).toLocaleDateString(dateLocale)}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "@/lib/i18n/use-translations";
@@ -13,6 +13,7 @@ import {
   InvoiceReportTable,
   formatReportCurrency,
 } from "@/components/reports/InvoiceReportTable";
+import { Pagination, paginate } from "@/components/ui/Pagination";
 import { exportRowsToExcel, exportRowsToPdf } from "@/lib/utils/export";
 import type { InvoiceListItem, InvoiceStatus } from "@/types/invoice.types";
 
@@ -31,6 +32,8 @@ export default function SalesReportPage() {
   });
   const [customerId, setCustomerId] = useState("");
   const [status, setStatus] = useState<InvoiceStatus | "">("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: customers = [] } = useQuery({
     queryKey: ["customers", "all"],
@@ -55,6 +58,12 @@ export default function SalesReportPage() {
       ? queryError.message
       : t("reports.loadError")
     : null;
+
+  useEffect(() => {
+    setPage(1);
+  }, [range.from, range.to, customerId, status]);
+
+  const paginatedInvoices = paginate(invoices, page, pageSize);
 
   const exportColumns = [
     {
@@ -177,7 +186,16 @@ export default function SalesReportPage() {
             {t("reports.loading")}
           </div>
         ) : (
-          <InvoiceReportTable invoices={invoices} />
+          <>
+            <InvoiceReportTable invoices={paginatedInvoices} />
+            <Pagination
+              currentPage={page}
+              pageSize={pageSize}
+              totalItems={invoices.length}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          </>
         )}
       </section>
     </div>

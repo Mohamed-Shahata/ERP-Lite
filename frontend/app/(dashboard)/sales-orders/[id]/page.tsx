@@ -22,6 +22,7 @@ import { SalesOrderStatusBadge } from "@/components/sales-orders/SalesOrderStatu
 import type { Product } from "@/types/product.types";
 import type { Customer } from "@/types/customer.types";
 import type { SalesOrderDetail } from "@/types/sales-order.types";
+import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 export default function SalesOrderDetailPage() {
   const params = useParams<{ id: string }>();
@@ -254,7 +255,9 @@ export default function SalesOrderDetailPage() {
               {order.customer.name}
             </p>
             {order.customer.email && <p>{order.customer.email}</p>}
-            {order.customer.phone && <p>{order.customer.phone}</p>}
+            {order.customer.phone && (
+              <span dir="ltr">{order.customer.phone}</span>
+            )}
           </div>
         )}
       </section>
@@ -301,13 +304,19 @@ export default function SalesOrderDetailPage() {
                       </p>
                     </td>
                     <td className="px-4 py-2 text-slate-700 dark:text-slate-300">
-                      {item.quantity}
+                      {new Intl.NumberFormat(dateLocale).format(item.quantity)}
                     </td>
                     <td className="px-4 py-2 text-slate-700 dark:text-slate-300">
-                      ${Number(item.unitPrice).toFixed(2)}
+                      {formatCurrency(
+                        Number(item.unitPrice).toFixed(2),
+                        dateLocale,
+                      )}
                     </td>
                     <td className="px-4 py-2 text-slate-700 dark:text-slate-300">
-                      ${(item.quantity * Number(item.unitPrice)).toFixed(2)}
+                      {formatCurrency(
+                        (item.quantity * Number(item.unitPrice)).toFixed(2),
+                        dateLocale,
+                      )}
                     </td>
                   </tr>
                 ))}

@@ -92,3 +92,8 @@ export type StockMovement = Prisma.StockMovementModel
  * 
  */
 export type CompanySettings = Prisma.CompanySettingsModel
+/**
+ * Model ContentPage
+ * 
+ */
+export type ContentPage = Prisma.ContentPageModel
